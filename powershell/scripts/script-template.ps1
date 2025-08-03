@@ -1,11 +1,12 @@
-#Requires -Version 7.0
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Template for PowerShell scripts with proper UTF-8 encoding and validation
 .DESCRIPTION
     This template provides a starting point for PowerShell scripts following
     enterprise development standards with proper error handling, documentation,
-    self-elevation, and comprehensive help system
+    self-elevation, and comprehensive help system.
+    Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
 .PARAMETER InputPath
     Path to input file or directory
 .PARAMETER OutputPath
@@ -30,23 +31,26 @@
     System.Management.Automation.PSCustomObject
     Returns processing results with status and details
 .NOTES
-    Author: Your Name
+    Author: Personal Development Environment
     Date: 2025-08-03
-    Version: 1.0
+    Version: 2.1
+    Requires: PowerShell 5.1+ (Windows 11 default)
+    Compatible: PowerShell 5.1, 7.x
 
     Prerequisites:
-    - PowerShell 7.0 or later
+    - PowerShell 5.1 or later (default Windows PowerShell)
     - UTF-8 encoding support
     - Administrator rights (if RequireAdmin specified)
 
     Change Log:
+    2.1 - Updated for PowerShell 5.1+ compatibility and enhanced help
     1.0 - Initial version with self-elevation and comprehensive help
 
     Links:
     - https://docs.microsoft.com/powershell/
     - https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_comment_based_help
 .LINK
-    https://github.com/your-repo/script-template
+    https://github.com/emilwojcik93/dotfile
 .COMPONENT
     DevelopmentTools
 .ROLE

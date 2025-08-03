@@ -1,4 +1,4 @@
-#Requires -Version 7.0
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Comprehensive setup script for development environment
@@ -24,9 +24,18 @@
     Run setup without WSL and validation
 .NOTES
     Author: Personal Development Environment
-    Version: 2.0
-    Requires: Windows 11, PowerShell 7+
+    Version: 2.1
+    Requires: Windows 11, PowerShell 5.1+ (default Windows PowerShell)
+    Compatible: PowerShell 5.1, 7.x
     Run as Administrator for full functionality
+.LINK
+    https://github.com/emilwojcik93/dotfile
+.COMPONENT
+    DotfilesSetup
+.ROLE
+    DeveloperTools
+.FUNCTIONALITY
+    Environment setup and configuration for cross-platform development
 #>
 
 [CmdletBinding()]
@@ -43,157 +52,149 @@ param(
 $OutputEncoding = [System.Text.Encoding]::UTF8
 $ErrorActionPreference = 'Stop'
 
-Write-Host "=== Personal Development Environment Setup ===" -ForegroundColor Green
-Write-Host "Starting comprehensive environment configuration..." -ForegroundColor Cyan
+Write-Host '=== Personal Development Environment Setup ===' -ForegroundColor Green
+Write-Host 'Starting comprehensive environment configuration...' -ForegroundColor Cyan
 
 # Function to test administrator privileges
 function Test-AdminPrivileges {
     $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     if (-not $IsAdmin) {
-        Write-Warning "Administrator privileges recommended for full setup"
-        Write-Host "Some features may not be available without admin rights" -ForegroundColor Yellow
+        Write-Warning 'Administrator privileges recommended for full setup'
+        Write-Host 'Some features may not be available without admin rights' -ForegroundColor Yellow
         return $false
     }
-    Write-Host "✓ Running with Administrator privileges" -ForegroundColor Green
+    Write-Host '✓ Running with Administrator privileges' -ForegroundColor Green
     return $true
 }
 
 # Function to install/upgrade winget
 function Install-Winget {
     if ($SkipWingetInstall) {
-        Write-Host "Skipping winget installation" -ForegroundColor Yellow
+        Write-Host 'Skipping winget installation' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Installing/upgrading Windows Package Manager (winget)..." -ForegroundColor Yellow
+    Write-Host 'Installing/upgrading Windows Package Manager (winget)...' -ForegroundColor Yellow
 
     try {
         # Check if winget is already available
         $wingetVersion = winget --version 2>$null
         if ($wingetVersion) {
             Write-Host "✓ Winget already installed: $wingetVersion" -ForegroundColor Green
-            
+
             # Try to upgrade winget
-            Write-Host "Attempting to upgrade winget..." -ForegroundColor Cyan
+            Write-Host 'Attempting to upgrade winget...' -ForegroundColor Cyan
             try {
                 winget upgrade Microsoft.DesktopAppInstaller --silent --accept-package-agreements --accept-source-agreements
-                Write-Host "✓ Winget upgraded successfully" -ForegroundColor Green
-            }
-            catch {
+                Write-Host '✓ Winget upgraded successfully' -ForegroundColor Green
+            } catch {
                 Write-Host "! Winget upgrade not needed or failed: $($_.Exception.Message)" -ForegroundColor Yellow
             }
             return
         }
-    }
-    catch {
-        Write-Host "Winget not found, installing..." -ForegroundColor Cyan
+    } catch {
+        Write-Host 'Winget not found, installing...' -ForegroundColor Cyan
     }
 
     # Install winget via App Installer package
     try {
-        Write-Host "Downloading and installing Microsoft App Installer..." -ForegroundColor Cyan
-        $tempPath = Join-Path $env:TEMP "Microsoft.DesktopAppInstaller.msixbundle"
-        
+        Write-Host 'Downloading and installing Microsoft App Installer...' -ForegroundColor Cyan
+        $tempPath = Join-Path $env:TEMP 'Microsoft.DesktopAppInstaller.msixbundle'
+
         # Download the latest version
-        $downloadUrl = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $downloadUrl = 'https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'
         Invoke-WebRequest -Uri $downloadUrl -OutFile $tempPath -UseBasicParsing
-        
+
         # Install the package
         Add-AppxPackage -Path $tempPath -ForceApplicationShutdown
         Remove-Item $tempPath -Force -ErrorAction SilentlyContinue
-        
+
         # Verify installation
         Start-Sleep -Seconds 5
         $wingetVersion = winget --version 2>$null
         if ($wingetVersion) {
             Write-Host "✓ Winget installed successfully: $wingetVersion" -ForegroundColor Green
+        } else {
+            throw 'Winget installation verification failed'
         }
-        else {
-            throw "Winget installation verification failed"
-        }
-    }
-    catch {
+    } catch {
         Write-Error "Failed to install winget: $($_.Exception.Message)"
-        Write-Host "Please install App Installer from Microsoft Store manually" -ForegroundColor Red
+        Write-Host 'Please install App Installer from Microsoft Store manually' -ForegroundColor Red
         return
     }
 }
 
 # Function to install packages using winget
 function Install-WingetPackages {
-    Write-Host "Installing development packages with winget..." -ForegroundColor Yellow
-    
+    Write-Host 'Installing development packages with winget...' -ForegroundColor Yellow
+
     # Check if winget is available
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        Write-Warning "Winget not available. Skipping package installation."
+        Write-Warning 'Winget not available. Skipping package installation.'
         return
     }
-    
+
     $Packages = @(
-        @{ Id = "Microsoft.Git"; Name = "Git" },
-        @{ Id = "Microsoft.VisualStudioCode"; Name = "Visual Studio Code" },
-        @{ Id = "Microsoft.PowerShell"; Name = "PowerShell 7+" },
-        @{ Id = "Python.Python.3.12"; Name = "Python 3.12" },
-        @{ Id = "JetBrains.JetBrainsMono"; Name = "JetBrains Mono Font" },
-        @{ Id = "Microsoft.WindowsTerminal"; Name = "Windows Terminal" },
-        @{ Id = "gsudo.gsudo"; Name = "GSudo (Admin Helper)" },
-        @{ Id = "Microsoft.WindowsSubsystemForLinux"; Name = "WSL" },
-        @{ Id = "Canonical.Ubuntu.2404"; Name = "Ubuntu 24.04 LTS" }
+        @{ Id = 'Microsoft.Git'; Name = 'Git' },
+        @{ Id = 'Microsoft.VisualStudioCode'; Name = 'Visual Studio Code' },
+        @{ Id = 'Microsoft.PowerShell'; Name = 'PowerShell 7+' },
+        @{ Id = 'Python.Python.3.12'; Name = 'Python 3.12' },
+        @{ Id = 'JetBrains.JetBrainsMono'; Name = 'JetBrains Mono Font' },
+        @{ Id = 'Microsoft.WindowsTerminal'; Name = 'Windows Terminal' },
+        @{ Id = 'gsudo.gsudo'; Name = 'GSudo (Admin Helper)' },
+        @{ Id = 'Microsoft.WindowsSubsystemForLinux'; Name = 'WSL' },
+        @{ Id = 'Canonical.Ubuntu.2404'; Name = 'Ubuntu 24.04 LTS' }
     )
-    
+
     foreach ($Package in $Packages) {
         Write-Host "Installing $($Package.Name)..." -ForegroundColor Cyan
         try {
             $result = winget install --id $Package.Id --silent --accept-package-agreements --accept-source-agreements 2>&1
-            if ($LASTEXITCODE -eq 0 -or $result -match "already installed") {
+            if ($LASTEXITCODE -eq 0 -or $result -match 'already installed') {
                 Write-Host "✓ $($Package.Name) installed/updated successfully" -ForegroundColor Green
-            }
-            else {
+            } else {
                 Write-Warning "Issue installing $($Package.Name): $result"
             }
-        }
-        catch {
+        } catch {
             Write-Warning "Failed to install $($Package.Name): $($_.Exception.Message)"
         }
     }
 }# Function to setup PowerShell profile
 function Set-PowerShellProfile {
     if ($SkipPowerShellProfile) {
-        Write-Host "Skipping PowerShell profile setup" -ForegroundColor Yellow
+        Write-Host 'Skipping PowerShell profile setup' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Setting up PowerShell profile..." -ForegroundColor Yellow
+    Write-Host 'Setting up PowerShell profile...' -ForegroundColor Yellow
 
     $ProfilePath = $PROFILE.CurrentUserAllHosts
     $ProfileDir = Split-Path $ProfilePath -Parent
-    $SourceProfile = Join-Path $PSScriptRoot "powershell\profile.ps1"
+    $SourceProfile = Join-Path $PSScriptRoot 'powershell\profile.ps1'
 
     # Create profile directory if it doesn't exist
     if (-not (Test-Path $ProfileDir)) {
         New-Item -Path $ProfileDir -ItemType Directory -Force | Out-Null
-        Write-Host "✓ Created PowerShell profile directory" -ForegroundColor Green
+        Write-Host '✓ Created PowerShell profile directory' -ForegroundColor Green
     }
 
     # Copy profile
     if (Test-Path $SourceProfile) {
         Copy-Item $SourceProfile $ProfilePath -Force
         Write-Host "✓ PowerShell profile installed to: $ProfilePath" -ForegroundColor Green
-    }
-    else {
+    } else {
         Write-Warning "Source profile not found: $SourceProfile"
     }
 
     # Install required modules
-    Write-Host "Installing PowerShell modules..." -ForegroundColor Cyan
+    Write-Host 'Installing PowerShell modules...' -ForegroundColor Cyan
     $Modules = @('PSScriptAnalyzer', 'Pester', 'PSReadLine')
     foreach ($Module in $Modules) {
         try {
             Write-Host "Installing module: $Module" -ForegroundColor Cyan
             Install-Module $Module -Force -Scope CurrentUser -AllowClobber -SkipPublisherCheck
             Write-Host "✓ $Module installed successfully" -ForegroundColor Green
-        }
-        catch {
+        } catch {
             Write-Warning "Failed to install module ${Module}: $($_.Exception.Message)"
         }
     }
@@ -202,47 +203,45 @@ function Set-PowerShellProfile {
 # Function to setup Python environment
 function Set-PythonEnvironment {
     if ($SkipPythonSetup) {
-        Write-Host "Skipping Python setup" -ForegroundColor Yellow
+        Write-Host 'Skipping Python setup' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Setting up Python environment..." -ForegroundColor Yellow
+    Write-Host 'Setting up Python environment...' -ForegroundColor Yellow
 
     # Check if Python is available
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-        Write-Warning "Python not found in PATH. Install Python first."
+        Write-Warning 'Python not found in PATH. Install Python first.'
         return
     }
 
     try {
         # Upgrade pip first
-        Write-Host "Upgrading pip..." -ForegroundColor Cyan
+        Write-Host 'Upgrading pip...' -ForegroundColor Cyan
         python -m pip install --upgrade pip
-        Write-Host "✓ Pip upgraded successfully" -ForegroundColor Green
+        Write-Host '✓ Pip upgraded successfully' -ForegroundColor Green
 
         # Install Python packages from requirements
-        $RequirementsFile = Join-Path $PSScriptRoot "python\requirements.txt"
+        $RequirementsFile = Join-Path $PSScriptRoot 'python\requirements.txt'
         if (Test-Path $RequirementsFile) {
-            Write-Host "Installing Python packages from requirements.txt..." -ForegroundColor Cyan
+            Write-Host 'Installing Python packages from requirements.txt...' -ForegroundColor Cyan
             python -m pip install -r $RequirementsFile
-            Write-Host "✓ Python packages installed successfully" -ForegroundColor Green
-        }
-        else {
+            Write-Host '✓ Python packages installed successfully' -ForegroundColor Green
+        } else {
             # Install essential packages manually
-            Write-Host "Installing essential Python packages..." -ForegroundColor Cyan
+            Write-Host 'Installing essential Python packages...' -ForegroundColor Cyan
             $PythonPackages = @('black', 'pylint', 'mypy', 'flake8', 'autopep8', 'bandit', 'pytest')
             foreach ($package in $PythonPackages) {
                 python -m pip install $package
             }
-            Write-Host "✓ Essential Python packages installed" -ForegroundColor Green
+            Write-Host '✓ Essential Python packages installed' -ForegroundColor Green
         }
 
         # Set environment variables
-        [Environment]::SetEnvironmentVariable("PYTHONIOENCODING", "utf-8", "User")
-        [Environment]::SetEnvironmentVariable("PYTHONUTF8", "1", "User")
-        Write-Host "✓ Python UTF-8 encoding configured" -ForegroundColor Green
-    }
-    catch {
+        [Environment]::SetEnvironmentVariable('PYTHONIOENCODING', 'utf-8', 'User')
+        [Environment]::SetEnvironmentVariable('PYTHONUTF8', '1', 'User')
+        Write-Host '✓ Python UTF-8 encoding configured' -ForegroundColor Green
+    } catch {
         Write-Warning "Python setup failed: $($_.Exception.Message)"
     }
 }
@@ -250,15 +249,15 @@ function Set-PythonEnvironment {
 # Function to setup WSL environment
 function Set-WSLEnvironment {
     if ($SkipWSLSetup) {
-        Write-Host "Skipping WSL setup" -ForegroundColor Yellow
+        Write-Host 'Skipping WSL setup' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Setting up WSL environment..." -ForegroundColor Yellow
+    Write-Host 'Setting up WSL environment...' -ForegroundColor Yellow
 
     # Check if WSL is available
     if (-not (Get-Command wsl -ErrorAction SilentlyContinue)) {
-        Write-Warning "WSL not found. Install WSL first: wsl --install"
+        Write-Warning 'WSL not found. Install WSL first: wsl --install'
         return
     }
 
@@ -268,64 +267,62 @@ function Set-WSLEnvironment {
         Write-Host "WSL Status: $wslStatus" -ForegroundColor Cyan
 
         # Install/copy bashrc
-        $BashrcSource = Join-Path $PSScriptRoot "wsl\.bashrc"
+        $BashrcSource = Join-Path $PSScriptRoot 'wsl\.bashrc'
         if (Test-Path $BashrcSource) {
-            Write-Host "Installing WSL bashrc..." -ForegroundColor Cyan
+            Write-Host 'Installing WSL bashrc...' -ForegroundColor Cyan
             $dotfilePath = $PSScriptRoot.Replace('\', '/').Replace('C:', '/mnt/c')
             wsl cp "$dotfilePath/wsl/.bashrc" ~/.bashrc
-            Write-Host "✓ WSL bashrc installed" -ForegroundColor Green
+            Write-Host '✓ WSL bashrc installed' -ForegroundColor Green
         }
 
         # Update packages and install development tools
-        Write-Host "Updating WSL packages..." -ForegroundColor Cyan
+        Write-Host 'Updating WSL packages...' -ForegroundColor Cyan
         wsl sudo apt update
         wsl sudo apt upgrade -y
-        
-        Write-Host "Installing WSL development packages..." -ForegroundColor Cyan
+
+        Write-Host 'Installing WSL development packages...' -ForegroundColor Cyan
         wsl sudo apt install -y python3-pip yamllint git curl build-essential
-        
-        Write-Host "Installing WSL Python packages..." -ForegroundColor Cyan
+
+        Write-Host 'Installing WSL Python packages...' -ForegroundColor Cyan
         wsl pip3 install black pylint mypy flake8 autopep8
-        
-        Write-Host "✓ WSL environment configured successfully" -ForegroundColor Green
-    }
-    catch {
+
+        Write-Host '✓ WSL environment configured successfully' -ForegroundColor Green
+    } catch {
         Write-Warning "WSL setup failed: $($_.Exception.Message)"
     }
 }
 
 # Function to setup VS Code settings
 function Set-VSCodeSettings {
-    Write-Host "Setting up VS Code settings..." -ForegroundColor Yellow
+    Write-Host 'Setting up VS Code settings...' -ForegroundColor Yellow
 
-    $VSCodeSettingsDir = Join-Path $env:APPDATA "Code\User"
-    $SourceSettingsDir = Join-Path $PSScriptRoot ".vscode"
+    $VSCodeSettingsDir = Join-Path $env:APPDATA 'Code\User'
+    $SourceSettingsDir = Join-Path $PSScriptRoot '.vscode'
 
     if (-not (Test-Path $VSCodeSettingsDir)) {
         New-Item -Path $VSCodeSettingsDir -ItemType Directory -Force | Out-Null
-        Write-Host "✓ Created VS Code settings directory" -ForegroundColor Green
+        Write-Host '✓ Created VS Code settings directory' -ForegroundColor Green
     }
 
     # Copy settings.json
-    $SourceSettings = Join-Path $SourceSettingsDir "settings.json"
-    $TargetSettings = Join-Path $VSCodeSettingsDir "settings.json"
+    $SourceSettings = Join-Path $SourceSettingsDir 'settings.json'
+    $TargetSettings = Join-Path $VSCodeSettingsDir 'settings.json'
     if (Test-Path $SourceSettings) {
         Copy-Item $SourceSettings $TargetSettings -Force
-        Write-Host "✓ VS Code settings.json installed" -ForegroundColor Green
+        Write-Host '✓ VS Code settings.json installed' -ForegroundColor Green
     }
 
     # Install recommended extensions
-    $ExtensionsFile = Join-Path $SourceSettingsDir "extensions.json"
+    $ExtensionsFile = Join-Path $SourceSettingsDir 'extensions.json'
     if (Test-Path $ExtensionsFile) {
-        Write-Host "Installing recommended VS Code extensions..." -ForegroundColor Cyan
+        Write-Host 'Installing recommended VS Code extensions...' -ForegroundColor Cyan
         try {
             $extensions = Get-Content $ExtensionsFile | ConvertFrom-Json
             foreach ($extension in $extensions.recommendations) {
                 code --install-extension $extension --force
             }
-            Write-Host "✓ VS Code extensions installed" -ForegroundColor Green
-        }
-        catch {
+            Write-Host '✓ VS Code extensions installed' -ForegroundColor Green
+        } catch {
             Write-Warning "Failed to install some extensions: $($_.Exception.Message)"
         }
     }
@@ -333,15 +330,37 @@ function Set-VSCodeSettings {
 
 # Function to create comprehensive validation script
 function New-ValidationScript {
-    Write-Host "Creating comprehensive validation script..." -ForegroundColor Yellow
+    Write-Host 'Creating comprehensive validation script...' -ForegroundColor Yellow
 
     $ValidationScript = @'
-#Requires -Version 7.0
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Comprehensive validation of development environment
 .DESCRIPTION
-    Validates all script files, environment configuration, and tool availability
+    Validates all script files, environment configuration, and tool availability.
+    Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
+.PARAMETER Verbose
+    Enable verbose output for detailed validation information
+.EXAMPLE
+    .\validate-all.ps1
+    Run standard validation
+.EXAMPLE
+    .\validate-all.ps1 -Verbose
+    Run validation with detailed output
+.NOTES
+    Author: Personal Development Environment
+    Version: 2.1
+    Requires: PowerShell 5.1+ (Windows 11 default)
+    Compatible: PowerShell 5.1, 7.x
+.LINK
+    https://github.com/emilwojcik93/dotfile
+.COMPONENT
+    DotfilesValidation
+.ROLE
+    DeveloperTools
+.FUNCTIONALITY
+    Environment validation and verification for cross-platform development
 #>
 
 [CmdletBinding()]
@@ -373,7 +392,7 @@ foreach ($tool in $Tools) {
 
 # Validate PowerShell files
 Write-Host "`n=== PowerShell File Validation ===" -ForegroundColor Cyan
-Get-ChildItem -Path . -Filter "*.ps1" -Recurse | ForEach-Object {
+Get-ChildItem -Path . -Filter "*.ps1" -Recurse | Where-Object { $_.FullName -notmatch '\.history' } | ForEach-Object {
     try {
         $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $_.FullName -Raw), [ref]$null)
         Write-Host "✓ $($_.Name)" -ForegroundColor Green
@@ -387,7 +406,7 @@ Get-ChildItem -Path . -Filter "*.ps1" -Recurse | ForEach-Object {
 # Validate Python files
 Write-Host "`n=== Python File Validation ===" -ForegroundColor Cyan
 if (Get-Command python -ErrorAction SilentlyContinue) {
-    Get-ChildItem -Path . -Filter "*.py" -Recurse | ForEach-Object {
+    Get-ChildItem -Path . -Filter "*.py" -Recurse | Where-Object { $_.FullName -notmatch '\.history' } | ForEach-Object {
         $Result = python -m py_compile $_.FullName 2>&1
         if ($LASTEXITCODE -eq 0) {
             Write-Host "✓ $($_.Name)" -ForegroundColor Green
@@ -402,7 +421,7 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
 
 # Validate JSON files
 Write-Host "`n=== JSON File Validation ===" -ForegroundColor Cyan
-Get-ChildItem -Path . -Filter "*.json" -Recurse | ForEach-Object {
+Get-ChildItem -Path . -Filter "*.json" -Recurse | Where-Object { $_.FullName -notmatch '\.history' } | ForEach-Object {
     try {
         Get-Content $_.FullName | ConvertFrom-Json | Out-Null
         Write-Host "✓ $($_.Name)" -ForegroundColor Green
@@ -448,7 +467,7 @@ if ($ErrorCount -eq 0) {
 }
 '@
 
-    $ValidationPath = Join-Path $PSScriptRoot "validate-all.ps1"
+    $ValidationPath = Join-Path $PSScriptRoot 'validate-all.ps1'
     Set-Content -Path $ValidationPath -Value $ValidationScript -Encoding UTF8
     Write-Host "✓ Comprehensive validation script created: $ValidationPath" -ForegroundColor Green
 }
@@ -456,24 +475,23 @@ if ($ErrorCount -eq 0) {
 # Function to validate environment
 function Test-Environment {
     if ($SkipValidation) {
-        Write-Host "Skipping environment validation" -ForegroundColor Yellow
+        Write-Host 'Skipping environment validation' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Validating environment setup..." -ForegroundColor Yellow
-    
+    Write-Host 'Validating environment setup...' -ForegroundColor Yellow
+
     try {
         # Run the validation script
-        $ValidationPath = Join-Path $PSScriptRoot "validate-all.ps1"
+        $ValidationPath = Join-Path $PSScriptRoot 'validate-all.ps1'
         if (Test-Path $ValidationPath) {
             & $ValidationPath
         } else {
-            Write-Warning "Validation script not found. Creating and running..."
+            Write-Warning 'Validation script not found. Creating and running...'
             New-ValidationScript
             & $ValidationPath
         }
-    }
-    catch {
+    } catch {
         Write-Warning "Environment validation failed: $($_.Exception.Message)"
     }
 }
@@ -481,68 +499,66 @@ function Test-Environment {
 # Function to setup Python environment
 function Set-PythonEnvironment {
     if ($SkipPythonSetup) {
-        Write-Host "Skipping Python setup" -ForegroundColor Yellow
+        Write-Host 'Skipping Python setup' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Setting up Python environment..." -ForegroundColor Yellow
+    Write-Host 'Setting up Python environment...' -ForegroundColor Yellow
 
     # Install Python packages
-    $RequirementsFile = Join-Path $PSScriptRoot "python\requirements.txt"
+    $RequirementsFile = Join-Path $PSScriptRoot 'python\requirements.txt'
     if (Test-Path $RequirementsFile) {
-        Write-Host "Installing Python packages from requirements.txt..." -ForegroundColor Cyan
+        Write-Host 'Installing Python packages from requirements.txt...' -ForegroundColor Cyan
         python -m pip install --upgrade pip
         python -m pip install -r $RequirementsFile
-        Write-Host "✓ Python packages installed" -ForegroundColor Green
-    }
-    else {
+        Write-Host '✓ Python packages installed' -ForegroundColor Green
+    } else {
         Write-Warning "Requirements file not found: $RequirementsFile"
     }
 
     # Set environment variable
-    [Environment]::SetEnvironmentVariable("PYTHONIOENCODING", "utf-8", "User")
-    Write-Host "✓ Python UTF-8 encoding configured" -ForegroundColor Green
+    [Environment]::SetEnvironmentVariable('PYTHONIOENCODING', 'utf-8', 'User')
+    Write-Host '✓ Python UTF-8 encoding configured' -ForegroundColor Green
 }
 
 # Function to setup WSL
 function Set-WSLEnvironment {
     if ($SkipWSLSetup) {
-        Write-Host "Skipping WSL setup" -ForegroundColor Yellow
+        Write-Host 'Skipping WSL setup' -ForegroundColor Yellow
         return
     }
 
-    Write-Host "Setting up WSL environment..." -ForegroundColor Yellow
+    Write-Host 'Setting up WSL environment...' -ForegroundColor Yellow
 
     # Check if WSL is installed
     if (Get-Command wsl -ErrorAction SilentlyContinue) {
-        $BashrcSource = Join-Path $PSScriptRoot "wsl\.bashrc"
+        $BashrcSource = Join-Path $PSScriptRoot 'wsl\.bashrc'
 
         if (Test-Path $BashrcSource) {
             # Copy bashrc to WSL home directory
-            Write-Host "Installing WSL bashrc..." -ForegroundColor Cyan
+            Write-Host 'Installing WSL bashrc...' -ForegroundColor Cyan
             wsl cp /mnt/c/Users/$env:USERNAME/GitHub/dotfile/wsl/.bashrc ~/.bashrc
-            Write-Host "✓ WSL bashrc installed" -ForegroundColor Green
+            Write-Host '✓ WSL bashrc installed' -ForegroundColor Green
         }
 
         # Install common packages in WSL
-        Write-Host "Installing WSL packages..." -ForegroundColor Cyan
+        Write-Host 'Installing WSL packages...' -ForegroundColor Cyan
         wsl sudo apt update
         wsl sudo apt install -y python3-pip yamllint git curl
         wsl pip3 install black pylint mypy
-        Write-Host "✓ WSL packages installed" -ForegroundColor Green
-    }
-    else {
-        Write-Warning "WSL not found. Install WSL first: wsl --install"
+        Write-Host '✓ WSL packages installed' -ForegroundColor Green
+    } else {
+        Write-Warning 'WSL not found. Install WSL first: wsl --install'
     }
 }
 
 # Function to setup VS Code settings
 function Set-VSCodeSettings {
-    Write-Host "Setting up VS Code settings..." -ForegroundColor Yellow
+    Write-Host 'Setting up VS Code settings...' -ForegroundColor Yellow
 
-    $VSCodeSettingsDir = Join-Path $env:APPDATA "Code\User"
-    $SourceSettings = Join-Path $PSScriptRoot ".vscode\settings.json"
-    $TargetSettings = Join-Path $VSCodeSettingsDir "settings.json"
+    $VSCodeSettingsDir = Join-Path $env:APPDATA 'Code\User'
+    $SourceSettings = Join-Path $PSScriptRoot '.vscode\settings.json'
+    $TargetSettings = Join-Path $VSCodeSettingsDir 'settings.json'
 
     if (-not (Test-Path $VSCodeSettingsDir)) {
         New-Item -Path $VSCodeSettingsDir -ItemType Directory -Force | Out-Null
@@ -550,16 +566,15 @@ function Set-VSCodeSettings {
 
     if (Test-Path $SourceSettings) {
         Copy-Item $SourceSettings $TargetSettings -Force
-        Write-Host "✓ VS Code settings installed" -ForegroundColor Green
-    }
-    else {
+        Write-Host '✓ VS Code settings installed' -ForegroundColor Green
+    } else {
         Write-Warning "Source settings not found: $SourceSettings"
     }
 }
 
 # Function to create validation script
 function New-ValidationScript {
-    Write-Host "Creating validation script..." -ForegroundColor Yellow
+    Write-Host 'Creating validation script...' -ForegroundColor Yellow
 
     $ValidationScript = @'
 #Requires -Version 7.0
@@ -608,61 +623,60 @@ Get-ChildItem -Path . -Filter "*.json" -Recurse | ForEach-Object {
 Write-Host "=== Validation Complete ===" -ForegroundColor Green
 '@
 
-    $ValidationPath = Join-Path $PSScriptRoot "validate-all.ps1"
+    $ValidationPath = Join-Path $PSScriptRoot 'validate-all.ps1'
     Set-Content -Path $ValidationPath -Value $ValidationScript -Encoding UTF8
     Write-Host "✓ Validation script created: $ValidationPath" -ForegroundColor Green
 }
 
 # Main execution block
 try {
-    Write-Host "Starting comprehensive environment setup..." -ForegroundColor Cyan
-    
+    Write-Host 'Starting comprehensive environment setup...' -ForegroundColor Cyan
+
     # Test administrator privileges
     $HasAdmin = Test-AdminPrivileges
-    
+
     # Install/upgrade winget first
     Install-Winget
-    
+
     # Install development packages
     Install-WingetPackages
-    
+
     # Setup PowerShell environment
     Set-PowerShellProfile
-    
+
     # Setup Python environment
     Set-PythonEnvironment
-    
+
     # Setup WSL environment (if not skipped)
     Set-WSLEnvironment
-    
+
     # Setup VS Code settings and extensions
     Set-VSCodeSettings
-    
+
     # Create validation script
     New-ValidationScript
-    
+
     # Validate environment
     Test-Environment
-    
+
     Write-Host "`n=== Setup Complete! ===" -ForegroundColor Green
-    Write-Host "Your development environment is now configured." -ForegroundColor Cyan
-    
+    Write-Host 'Your development environment is now configured.' -ForegroundColor Cyan
+
     Write-Host "`nNext steps:" -ForegroundColor Yellow
-    Write-Host "1. Restart PowerShell to load new profile" -ForegroundColor White
-    Write-Host "2. Restart VS Code to apply all settings" -ForegroundColor White
-    Write-Host "3. Run .\validate-all.ps1 to verify everything" -ForegroundColor White
+    Write-Host '1. Restart PowerShell to load new profile' -ForegroundColor White
+    Write-Host '2. Restart VS Code to apply all settings' -ForegroundColor White
+    Write-Host '3. Run .\validate-all.ps1 to verify everything' -ForegroundColor White
     if (-not $HasAdmin) {
-        Write-Host "4. Consider running as Administrator for full functionality" -ForegroundColor White
+        Write-Host '4. Consider running as Administrator for full functionality' -ForegroundColor White
     }
-    Write-Host "5. Configure Git with your personal details:" -ForegroundColor White
+    Write-Host '5. Configure Git with your personal details:' -ForegroundColor White
     Write-Host "   git config --global user.name 'Your Name'" -ForegroundColor Gray
     Write-Host "   git config --global user.email 'your.email@example.com'" -ForegroundColor Gray
-    Write-Host "6. Restart your terminal to use new fonts and settings" -ForegroundColor White
-    
+    Write-Host '6. Restart your terminal to use new fonts and settings' -ForegroundColor White
+
     Write-Host "`nEnvironment ready for development with AI assistants!" -ForegroundColor Green
-}
-catch {
+} catch {
     Write-Error "Setup failed: $($_.Exception.Message)"
-    Write-Host "Check the error above and try running specific sections manually" -ForegroundColor Red
+    Write-Host 'Check the error above and try running specific sections manually' -ForegroundColor Red
     exit 1
 }

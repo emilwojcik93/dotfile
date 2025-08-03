@@ -1,14 +1,25 @@
-#Requires -Version 7.0
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     PowerShell profile configuration for development environment
 .DESCRIPTION
     Sets up PowerShell environment with custom functions, aliases, and modules
-    for development work with proper UTF-8 encoding and validation tools
+    for development work with proper UTF-8 encoding and validation tools.
+    Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
 .NOTES
-    Author: Development Team
-    Version: 1.0
+    Author: Personal Development Environment
+    Version: 2.1
+    Requires: PowerShell 5.1+ (Windows 11 default)
+    Compatible: PowerShell 5.1, 7.x
     Place this file in: $PROFILE.CurrentUserAllHosts
+.LINK
+    https://github.com/emilwojcik93/dotfile
+.COMPONENT
+    DotfilesProfile
+.ROLE
+    DeveloperTools
+.FUNCTIONALITY
+    PowerShell environment configuration for cross-platform development
 #>
 
 # Set console encoding to UTF-8

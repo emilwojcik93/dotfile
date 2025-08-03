@@ -36,13 +36,14 @@
 
 ```powershell
 # Template header for PowerShell scripts
-#Requires -Version 7.0
+#Requires -Version 5.1
 <#
 .SYNOPSIS
     Brief description of what the script does
 .DESCRIPTION
     Detailed description of the script's functionality, purpose, and behavior.
     Include any important prerequisites or dependencies.
+    Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
 .PARAMETER ParameterName
     Description of the parameter, including valid values and examples
 .EXAMPLE
@@ -61,9 +62,11 @@
     Author: Your Name
     Date: YYYY-MM-DD
     Version: 1.0
+    Requires: PowerShell 5.1+ (Windows 11 default)
+    Compatible: PowerShell 5.1, 7.x
 
     Prerequisites:
-    - PowerShell 7.0 or later
+    - PowerShell 5.1 or later (default Windows PowerShell)
     - Administrator rights (if applicable)
     - Required modules: ModuleName
 
@@ -73,7 +76,7 @@
     Links:
     - https://docs.microsoft.com/powershell/
 .LINK
-    https://github.com/your-repo/script-name
+    https://github.com/emilwojcik93/dotfile
 .COMPONENT
     ComponentName (if part of a larger system)
 .ROLE
@@ -97,6 +100,8 @@ param(
 
 **PowerShell Development Standards:**
 
+- Always use **#Requires -Version 5.1** for Windows 11 compatibility (default PowerShell)
+- Support both **PowerShell 5.1** (Windows PowerShell) and **PowerShell 7.x** (PowerShell Core)
 - Always include complete **Comment-Based Help** following Microsoft conventions
 - Use **approved verbs** (Get-Verb for reference)
 - Include **parameter validation** and help messages
@@ -107,6 +112,15 @@ param(
 - Test on both **Windows PowerShell 5.1** and **PowerShell 7+**
 - Use **gsudo** for administrative commands when available
 - Include **self-elevation function** for admin-required scripts
+
+**PowerShell 5.1 Compatibility Requirements:**
+- Avoid PowerShell 7+ specific features (null-conditional operators, ternary operators)
+- Use compatible parameter syntax and validation attributes
+- Test `Get-Help` functionality locally (avoid internet lookups)
+- Use `Where-Object` instead of `?` shorthand for clarity
+- Use `ForEach-Object` instead of `%` shorthand for readability
+- Ensure all cmdlets and modules work in both versions
+- Use explicit pipeline variable references `$_` for clarity
 
 ### Python Scripts (.py)
 
