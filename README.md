@@ -1,73 +1,17 @@
 # Personal Dotfiles Repository
 
-This repository contains my personal development environment configurat## Features
+This repository contains my personal development environment configuration and instructions for AI assistants (GitHub Copilot, Cline, Cursor).
+
+## Environment
+- **OS**: Windows 11 with WSL Ubuntu
+- **Shells**: PowerShell 7+, Bash (WSL)
+- **Languages**: Python 3.12+, PowerShell
+- **Editors**: VS Code with AI assistants
+
+## Features
 
 ### Development Environment
-- **Windows 11 Optimized**: Native Windows development with### Troubleshooting
-
-#### Common Issues
-
-**Fonts not appearing correctly**
-```powershell
-# Install JetBrainsMono Nerd Font
-winget install JetBrains.JetBrainsMono
-# Restart VS Code after font installation
-```
-
-**PowerShell scripts not running**
-```powershell
-# Check execution policy
-Get-ExecutionPolicy
-# Set execution policy for current user
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-**WSL integration not working**
-```powershell
-# Ensure WSL is properly installed
-wsl --status
-# Install Ubuntu if not present
-wsl --install -d Ubuntu
-```
-
-**VS Code not loading settings**
-```powershell
-# Check if settings are properly symlinked/copied
-# Restart VS Code and check Settings Sync status
-```
-
-**Python/PowerShell formatting not working**
-```powershell
-# Install required formatters
-pip install black pylint mypy flake8
-Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
-```
-
-#### Performance Optimization
-
-**Large Repository Performance**
-- Enable `search.useIgnoreFiles` and `search.followSymlinks: false`
-- Disable unnecessary extensions for specific workspaces
-- Use `.vscode/settings.json` for workspace-specific overrides
-
-**Remote Development (WSL/SSH)**
-- Configure `remote.SSH.remotePlatform` for your hosts
-- Use WSL-specific Python interpreters for better integration
-- Enable `terminal.integrated.copyOnSelection` for better workflow
-
-#### Font Configuration
-
-**JetBrainsMono Nerd Font Features**
-- **Ligatures**: Improved code readability with combined characters
-- **Nerd Font Icons**: File type and git status icons in terminal
-- **Optimal Spacing**: Designed specifically for code editing
-- **Multiple Weights**: Regular, Bold, Italic variants available
-
-**Alternative Font Options**
-```jsonc
-// For users preferring other fonts
-"editor.fontFamily": "'Cascadia Code PL', 'Fira Code', 'Source Code Pro', monospace"
-```ration
+- **Windows 11 Optimized**: Native Windows development with WSL integration
 - **Font Configuration**: JetBrainsMono Nerd Font with ligatures and icon support
 - **Cross-Platform**: Seamless Windows/WSL development workflow
 - **Performance Tuned**: Optimized settings for large repositories and remote development
@@ -80,7 +24,7 @@ Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
 
 ### AI Assistant Integration
 - **GitHub Copilot**: Advanced code completion and chat features
-- **Claude Code**: Alternative AI assistant with custom instructions
+- **Cline/Cursor**: Alternative AI assistants with custom instructions
 - **Workspace Instructions**: Automatic instruction loading from `.github/copilot-instructions.md`
 - **Context Awareness**: AI assistants understand project structure and coding standards
 
@@ -96,13 +40,7 @@ Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
 - **Python Environment**: Pre-configured with Black, Pylint, MyPy, Flake8
 - **WSL Integration**: Ubuntu development environment with development tools
 - **VS Code Tasks**: Automated validation and formatting workflows
-- **Hex Editor**: Binary file viewing and editing capabilitiesructions for AI assistants (GitHub Copilot, Cline, Cursor).
-
-## Environment
-- **OS**: Windows 11 with WSL Ubuntu
-- **Shells**: PowerShell, Bash (WSL)
-- **Languages**: Python, PowerShell
-- **Editors**: VS Code with AI assistants
+- **Hex Editor**: Binary file viewing and editing capabilities
 
 ## Repository Structure
 

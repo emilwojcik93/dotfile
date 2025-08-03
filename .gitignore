@@ -23,6 +23,10 @@ Icon?
 .vscode/settings.json.user
 *.code-workspace
 
+# === History files ===
+.history/
+*.history
+
 # === PowerShell ===
 *.ps1xml
 $PSScriptRoot/
