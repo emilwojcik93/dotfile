@@ -1,0 +1,103 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Validate All Files",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "Write-Host 'Validating dotfiles repository...' -ForegroundColor Green; Get-ChildItem -Path . -Filter '*.ps1' -Recurse | Where-Object { $_.FullName -notmatch '\\.history' } | ForEach-Object { try { $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $_.FullName -Raw), [ref]$null); Write-Host ('✓ ' + $_.Name) -ForegroundColor Green } catch { Write-Host ('✗ ' + $_.Name + ': ' + $_.Exception.Message) -ForegroundColor Red } }; Write-Host 'Validation complete' -ForegroundColor Green"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Setup Environment",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\setup.ps1"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Comprehensive Validation",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\validate-all.ps1"
+      ],
+      "group": "test",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Format PowerShell Files",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "if (Get-Module -ListAvailable -Name PSScriptAnalyzer) { Get-ChildItem -Path . -Filter '*.ps1' -Recurse | Where-Object { $_.FullName -notmatch '\\.history' } | ForEach-Object { Write-Host ('Formatting ' + $_.Name) -ForegroundColor Cyan; Invoke-Formatter -ScriptDefinition (Get-Content $_.FullName -Raw) | Set-Content $_.FullName -Encoding UTF8 } } else { Write-Warning 'PSScriptAnalyzer module not found. Run Setup Environment task first.' }"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Install Dependencies Only",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\setup.ps1",
+        "-SkipPowerShellProfile",
+        "-SkipWSLSetup",
+        "-SkipValidation"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
