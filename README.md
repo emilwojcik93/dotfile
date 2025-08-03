@@ -104,9 +104,13 @@ winget install chocolatey.chocolatey  # Alternative package manager
 git clone https://github.com/your-username/dotfiles.git $env:USERPROFILE\GitHub\dotfile
 cd $env:USERPROFILE\GitHub\dotfile
 
+# Get help (works offline)
+Get-Help .\setup.ps1 -Detailed
+
 # Run setup as Administrator
 gsudo .\setup.ps1
-# OR without gsudo:
+
+# Without gsudo:
 # Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -File .\setup.ps1" -Verb RunAs
 ```
 
@@ -212,16 +216,16 @@ All scripts are automatically validated for:
 - **Get-Help searching online**: PowerShell 5.1 may search online for help even with comment-based help present. This is a known limitation. Use `.\setup.ps1 -?` or view script comments directly.
 
 ### PowerShell Help System
-The scripts include comprehensive comment-based help, but PowerShell 5.1 may still search online due to:
-- Large script size interfering with help parser
-- Windows 11 default configuration preferring online help
-- Complex script structure with multiple functions
+All scripts include comprehensive comment-based help that works offline with PowerShell 5.1+.
 
-**Workarounds**:
-- Use `Get-Content .\setup.ps1 | Select-Object -First 40` to view help comments
-- Run `.\setup.ps1 -?` for parameter help
-- Use PowerShell 7+ where available for better help support
-- View script comments directly in VS Code or text editor
+**Usage**:
+- `Get-Help .\setup.ps1` - View help offline ✅
+- `Get-Help .\setup.ps1 -Detailed` - Detailed help information
+- `Get-Help .\setup.ps1 -Examples` - Usage examples
+
+**All scripts now support offline help**: setup.ps1, profile.ps1, script-template.ps1
+
+The repository is now clean and contains only essential files for cloud/dev environment setup.
 
 ### Getting Help
 - Run validation tasks to identify issues
