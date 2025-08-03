@@ -209,6 +209,19 @@ All scripts are automatically validated for:
 - **Scripts not running**: Check execution policy with `Get-ExecutionPolicy`
 - **Encoding problems**: Use `utf8` command to fix file encoding
 - **VS Code not loading settings**: Restart VS Code and check Settings Sync
+- **Get-Help searching online**: PowerShell 5.1 may search online for help even with comment-based help present. This is a known limitation. Use `.\setup.ps1 -?` or view script comments directly.
+
+### PowerShell Help System
+The scripts include comprehensive comment-based help, but PowerShell 5.1 may still search online due to:
+- Large script size interfering with help parser
+- Windows 11 default configuration preferring online help
+- Complex script structure with multiple functions
+
+**Workarounds**:
+- Use `Get-Content .\setup.ps1 | Select-Object -First 40` to view help comments
+- Run `.\setup.ps1 -?` for parameter help
+- Use PowerShell 7+ where available for better help support
+- View script comments directly in VS Code or text editor
 
 ### Getting Help
 - Run validation tasks to identify issues
