@@ -9,6 +9,24 @@ A professional Infrastructure as Code (IaC) setup for Windows 11, PowerShell, WS
 - Internet connection for package downloads  
 - App Installer (winget) - Available from Microsoft Store
 
+**Winget Package Validation:**
+Use these commands to verify package availability before installation:
+```powershell
+# Search for packages
+winget search git
+
+# Validate package exists
+winget show Git.Git
+
+# Check available versions
+winget search Git.Git --versions
+```
+
+**Package Verification Sources:**
+- GitHub Manifests: https://github.com/microsoft/winget-pkgs/tree/master/manifests
+- Winget.run: https://winget.run/pkg/Git/Git
+- Winstall.app: https://winstall.app/apps/Git.Git
+
 **One-Command Installation (Self-Elevating):**
 ```powershell
 # No need to run as Administrator - script will self-elevate automatically

@@ -554,7 +554,8 @@ function Start-Installation {
             @{Id="GitHub.copilot"; Name="GitHub Copilot"; Required=$true; Condition=$true},
             @{Id="GitHub.copilot-chat"; Name="GitHub Copilot Chat"; Required=$true; Condition=$true},
             @{Id="esbenp.prettier-vscode"; Name="Prettier - Code formatter"; Required=$true; Condition=$true},
-            @{Id="zainchen.json"; Name="JSON"; Required=$true; Condition=$true}
+            @{Id="zainchen.json"; Name="JSON"; Required=$true; Condition=$true},
+            @{Id="xyz.local-history"; Name="Local History"; Required=$true; Condition=$true}
         )
         
         # Conditional extensions based on detected capabilities

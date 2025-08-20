@@ -17,6 +17,32 @@
 - **Python**: Python 3.11+ (prefer latest stable)
 - **Tools**: VS Code, Git, Windows Terminal
 
+### Package Management & Dependencies
+
+- **Primary Package Manager**: Always prefer **winget** for Windows software installation
+- **Validate Package Availability**: Use `winget search <package>` to verify packages exist
+- **Package Sources**: Reference official winget sources for validation:
+  - GitHub Manifests: https://github.com/microsoft/winget-pkgs/tree/master/manifests
+  - Winget.run: https://winget.run/pkg/<Publisher>/<Package>
+  - Winstall.app: https://winstall.app/apps/<Publisher>.<Package>
+- **Installation Commands**: Use `winget install <PackageId>` format consistently
+- **Version Management**: Specify versions when stability is critical: `winget install Git.Git --version 2.50.1`
+
+### Development History & Backup
+
+- **Local History Extension**: Always install `xyz.local-history` VS Code extension for automatic file versioning
+- **History Directory**: Utilize `.history/` directory in git repositories for:
+  - **Script Recovery**: Restore corrupted or accidentally deleted scripts
+  - **Version Comparison**: Compare current files with historical versions
+  - **Backup Strategy**: Automatic local backup before major changes
+- **Git Integration**: Always add `.history/` to `.gitignore` to exclude from commits:
+  ```gitignore
+  # === History files ===
+  .history/
+  *.history
+  ```
+- **Recovery Process**: Access file history via VS Code Command Palette > "Local History: Show"
+
 ## Script Development
 
 ### Code Quality Standards
