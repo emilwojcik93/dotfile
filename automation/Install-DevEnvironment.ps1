@@ -61,7 +61,9 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
     }
 
     $script = "& { & '$PSCommandPath' $($argList -join ' ') }"
-    $powershellCmd = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
+    # Always use PowerShell 5.1 for Windows 11 compatibility (default Windows PowerShell)
+    # PowerShell 7.x can cause issues with VS Code CLI and other tools
+    $powershellCmd = "powershell"
     $processCmd = if (Get-Command wt.exe -ErrorAction SilentlyContinue) { "wt.exe" } else { "$powershellCmd" }
 
     try {

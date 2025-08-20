@@ -24,13 +24,14 @@
 - **WSL**: `ms-vscode-remote.remote-wsl` ✅
 
 ### ✅ System Capabilities Validated
-- **VS Code**: ✅ Available with 30+ extensions installed
-- **Python 3.12**: ✅ Available and configured
+- **VS Code**: ✅ Available with 32+ extensions installed
+- **Python 3.13.5**: ✅ Available and configured
 - **Git**: ✅ Available with user configuration
-- **PowerShell 7.5.2**: ✅ Available with enhanced profile
+- **PowerShell 5.1**: ✅ Primary scripting environment (Windows 11 default)
+- **PowerShell 7.5.2**: ✅ Available as supplementary (advanced features)
 - **Windows Terminal**: ✅ Available
 - **Winget**: ✅ Available for package management
-- **Docker**: ✅ Available for containerization
+- **Docker**: ❌ Not Found (extensions will be skipped)
 
 ---
 
@@ -86,10 +87,10 @@
 **Log File**: `$env:TEMP\DevEnvInstall.log`
 
 ### ✅ Successful Operations
-- Core applications: VS Code, Git, PowerShell 7+, Python 3.12, Docker
-- All VS Code extensions installed successfully
-- PowerShell profile configured
-- VS Code settings applied
+- Core applications: VS Code, Git, PowerShell 5.1 (primary), PowerShell 7.x (supplementary), Python 3.13.5
+- All VS Code extensions installed successfully (32+ extensions)
+- PowerShell profile configured with Beast Mode integration
+- VS Code settings applied with PowerShell 5.1 compatibility
 
 ### ⚠️ Warnings Identified (Non-Critical)
 1. **Beast Mode file location warning** - ✅ **RESOLVED**: File created in workspace
@@ -104,11 +105,12 @@
 ## 🎯 Validation Results
 
 **System Ready**: ✅ **100% Complete**  
-**Extensions Installed**: ✅ **30+ extensions active**  
+**Extensions Installed**: ✅ **32+ extensions active** (including xyz.local-history)  
 **Profile Configured**: ✅ **Enhanced PowerShell profile active**  
 **Git Configuration**: ✅ **User configured (Emil Wójcik)**  
 **Package Management**: ✅ **Winget validated and ready**  
 **Local History**: ✅ **Backup system active**  
+**PowerShell Compatibility**: ✅ **PowerShell 5.1 primary, 7.x supplementary**  
 
 ---
 

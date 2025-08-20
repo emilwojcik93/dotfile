@@ -10,13 +10,16 @@ Write-Host ""
 Write-Host "=== SYSTEM CAPABILITIES ===" -ForegroundColor Yellow
 $capabilities = @{
     VSCode = [bool](Get-Command code -ErrorAction SilentlyContinue)
-    Python = [bool](Get-Command python -ErrorAction SilentlyContinue)
+    Python = [bool](Get-Command python -ErrorAction SilentlyContinue)  
     Git = [bool](Get-Command git -ErrorAction SilentlyContinue)
     Docker = [bool](Get-Command docker -ErrorAction SilentlyContinue)
+    PowerShell51 = ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -eq 1)
     PowerShell7 = [bool](Get-Command pwsh -ErrorAction SilentlyContinue)
     WindowsTerminal = [bool](Get-Command wt -ErrorAction SilentlyContinue)
     Winget = [bool](Get-Command winget -ErrorAction SilentlyContinue)
-    WSL = (wsl --list 2>$null) -and ($LASTEXITCODE -eq 0)
+    WSL = if (Get-Command wsl -ErrorAction SilentlyContinue) { 
+        try { wsl --status 2>$null; $LASTEXITCODE -eq 0 } catch { $false } 
+    } else { $false }
 }
 
 $capabilities.GetEnumerator() | Sort-Object Name | ForEach-Object {
@@ -25,16 +28,59 @@ $capabilities.GetEnumerator() | Sort-Object Name | ForEach-Object {
     Write-Host ("  {0}: {1}" -f $_.Key, $status) -ForegroundColor $color
 }
 
+# Show versions for available tools (using PowerShell 5.1 for compatibility)
+Write-Host "  Version Details:" -ForegroundColor Cyan
+Write-Host "    PowerShell Current: $($PSVersionTable.PSVersion)" -ForegroundColor Gray
+if ($capabilities.Python) {
+    try {
+        $pythonVersion = powershell.exe -NoProfile -Command "python --version" 2>$null
+        if ($pythonVersion) {
+            Write-Host "    $pythonVersion" -ForegroundColor Gray
+        }
+    } catch { }
+}
+if ($capabilities.Git) {
+    try {
+        $gitVersion = git --version 2>$null
+        Write-Host "    Git: $gitVersion" -ForegroundColor Gray
+    } catch { }
+}
+if ($capabilities.PowerShell7) {
+    try {
+        $pwshVersion = pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()' 2>$null
+        Write-Host "    PowerShell 7: $pwshVersion (supplementary)" -ForegroundColor Gray
+    } catch { }
+}
+
 Write-Host ""
 
 # VS Code Extensions Check
 Write-Host "=== VS CODE EXTENSIONS ===" -ForegroundColor Yellow
-$installedExtensions = code --list-extensions 2>$null
-if ($installedExtensions) {
-    Write-Host "  Currently Installed:" -ForegroundColor Green
-    $installedExtensions | ForEach-Object { Write-Host "    ✅ $_" -ForegroundColor Green }
-} else {
-    Write-Host "  ❌ No extensions currently installed" -ForegroundColor Red
+try {
+    # Use PowerShell 5.1 to avoid profile interference with VS Code CLI
+    # PowerShell 7.x with custom profiles can cause code --list-extensions to open GUI
+    $extensionCommand = 'powershell.exe -NoProfile -Command "code --list-extensions"'
+    $installedExtensions = Invoke-Expression $extensionCommand | Where-Object { $_.Trim() -ne "" }
+    
+    if ($installedExtensions -and $installedExtensions.Count -gt 0) {
+        Write-Host "  Currently Installed ($($installedExtensions.Count) extensions):" -ForegroundColor Green
+        $installedExtensions | Sort-Object | ForEach-Object { Write-Host "    ✅ $_" -ForegroundColor Green }
+        
+        # Check for key extensions
+        $keyExtensions = @("xyz.local-history", "github.copilot", "github.copilot-chat", "zainchen.json", "ms-vscode.powershell")
+        Write-Host "  Key Extensions Status:" -ForegroundColor Yellow
+        foreach ($ext in $keyExtensions) {
+            $found = $installedExtensions -contains $ext
+            $status = if ($found) { "✅ Installed" } else { "❌ Missing" }
+            $color = if ($found) { "Green" } else { "Red" }
+            Write-Host "    ${ext}: ${status}" -ForegroundColor $color
+        }
+    } else {
+        Write-Host "  ❌ No extensions currently installed or VS Code not accessible" -ForegroundColor Red
+    }
+} catch {
+    Write-Host "  ❌ Error checking VS Code extensions: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "  💡 Tip: Use 'powershell.exe -NoProfile -Command \"code --list-extensions\"' for manual check" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -76,7 +122,7 @@ if ($capabilities.Winget) {
     Write-Host "  ✅ Winget available for package management" -ForegroundColor Green
     
     # Test key packages
-    $packages = @("Git.Git", "Microsoft.VisualStudioCode", "Python.Python.3.12")
+    $packages = @("Git.Git", "Microsoft.VisualStudioCode", "Python.Python.3.13")
     foreach ($pkg in $packages) {
         winget show $pkg 2>$null | Out-Null
         $available = $LASTEXITCODE -eq 0

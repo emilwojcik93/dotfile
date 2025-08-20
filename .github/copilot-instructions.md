@@ -13,9 +13,17 @@
 ### Platform Environment
 
 - **OS**: Windows 11 with WSL Ubuntu
-- **Shells**: PowerShell 7+ and Bash (WSL)
+- **Primary Shell**: **PowerShell 5.1** (Default Windows PowerShell) - **REQUIRED**
+- **Secondary Shell**: Bash (WSL) for Linux compatibility
 - **Python**: Python 3.11+ (prefer latest stable)
 - **Tools**: VS Code, Git, Windows Terminal
+
+**⚠️ PowerShell Version Requirements:**
+- **Always use PowerShell 5.1** (`powershell.exe`) as the primary scripting environment
+- **PowerShell 7.x compatibility issues**: Custom profiles interfere with VS Code CLI (`code --list-extensions` opens GUI instead of listing)
+- **Windows 11 default**: PowerShell 5.1 is the default Windows PowerShell installation
+- **Script compatibility**: All automation scripts must work with PowerShell 5.1 syntax
+- **Optional PowerShell 7.x**: Can be installed as supplementary but not required for core functionality
 
 ### Package Management & Dependencies
 
@@ -169,6 +177,7 @@ param(
 - Use `ForEach-Object` instead of `%` shorthand for readability
 - Ensure all cmdlets and modules work in both versions
 - Use explicit pipeline variable references `$_` for clarity
+- **VS Code CLI**: Always use `powershell.exe -NoProfile -Command` to avoid profile interference
 
 ### Python Scripts (.py)
 
