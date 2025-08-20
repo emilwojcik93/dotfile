@@ -43,6 +43,16 @@
   ```
 - **Recovery Process**: Access file history via VS Code Command Palette > "Local History: Show"
 
+### Log Analysis and Validation
+
+- **Always Check Logs**: After any script execution, review log files for warnings and errors
+- **Log File Locations**: Check standard locations like `$env:TEMP\*.log` or script-specific paths
+- **Warning Analysis**: Even successful runs may contain important warnings to address
+- **Validation Steps**: Use `Get-Content -Tail 50` to review recent log entries
+- **Error Patterns**: Look for ERROR, WARN, FAIL patterns in log output
+- **Success Verification**: Confirm that "SUCCESS" or completion messages appear in logs
+- **Post-Installation**: Always validate installation results even when scripts report success
+
 ## Script Development
 
 ### Code Quality Standards
