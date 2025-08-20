@@ -24,7 +24,7 @@ import signal
 class ScriptValidator:
     """Comprehensive validation class for Python scripts following IaC principles"""
     
-    def __init__(self, script_name: str = None, log_level: int = logging.INFO):
+    def __init__(self, script_name: Optional[str] = None, log_level: int = logging.INFO):
         self.script_name = script_name or Path(sys.argv[0]).name
         self.script_version = "1.0.0"
         self.logger = self._setup_logging(log_level)
@@ -57,7 +57,7 @@ class ScriptValidator:
             self.validation_errors += 1
             return False
     
-    def validate_command(self, command: str, alternatives: List[str] = None) -> bool:
+    def validate_command(self, command: str, alternatives: Optional[List[str]] = None) -> bool:
         """Test if a command/tool is available in the system"""
         alternatives = alternatives or []
         
@@ -149,7 +149,7 @@ class ScriptValidator:
         
         return True
     
-    def validate_os(self, supported_os: List[str] = None) -> bool:
+    def validate_os(self, supported_os: Optional[List[str]] = None) -> bool:
         """Validate operating system"""
         supported_os = supported_os or ["Windows", "Linux", "Darwin"]
         current_os = platform.system()
@@ -165,19 +165,32 @@ class ScriptValidator:
     def validate_disk_space(self, path: Union[str, Path], min_gb: float = 1.0) -> bool:
         """Validate available disk space"""
         try:
-            statvfs = os.statvfs(str(path))
-            available_gb = (statvfs.f_frsize * statvfs.f_bavail) / (1024**3)
-            
-            if available_gb >= min_gb:
-                self.logger.info(f"Disk space validation passed: {available_gb:.2f}GB available")
-                return True
+            # Try to use statvfs on Unix systems
+            if hasattr(os, 'statvfs'):
+                statvfs = os.statvfs(str(path))  # type: ignore
+                available_gb = (statvfs.f_frsize * statvfs.f_bavail) / (1024**3)
+                
+                if available_gb >= min_gb:
+                    self.logger.info(f"Disk space validation passed: {available_gb:.2f}GB available")
+                    return True
+                else:
+                    self.logger.error(f"Insufficient disk space. Required: {min_gb}GB, Available: {available_gb:.2f}GB")
+                    self.validation_errors += 1
+                    return False
             else:
-                self.logger.error(f"Insufficient disk space. Required: {min_gb}GB, Available: {available_gb:.2f}GB")
-                self.validation_errors += 1
-                return False
-        except (OSError, AttributeError):
-            # Fallback for Windows or other systems
-            self.logger.warning("Unable to check disk space on this system")
+                # Windows fallback - use shutil.disk_usage
+                usage = shutil.disk_usage(str(path))
+                available_gb = usage.free / (1024**3)
+                
+                if available_gb >= min_gb:
+                    self.logger.info(f"Disk space validation passed: {available_gb:.2f}GB available")
+                    return True
+                else:
+                    self.logger.error(f"Insufficient disk space. Required: {min_gb}GB, Available: {available_gb:.2f}GB")
+                    self.validation_errors += 1
+                    return False
+        except (OSError, AttributeError) as e:
+            self.logger.warning(f"Unable to check disk space: {e}")
             return True
     
     def get_system_info(self) -> dict:
@@ -196,9 +209,9 @@ class ScriptValidator:
     
     def validate_system(self, 
                        min_python_version: Tuple[int, int] = (3, 7),
-                       required_commands: List[str] = None,
-                       required_modules: List[str] = None,
-                       supported_os: List[str] = None) -> bool:
+                       required_commands: Optional[List[str]] = None,
+                       required_modules: Optional[List[str]] = None,
+                       supported_os: Optional[List[str]] = None) -> bool:
         """Comprehensive system validation"""
         self.logger.info("Starting comprehensive system validation...")
         
@@ -244,23 +257,50 @@ class ScriptValidator:
     def prompt_with_timeout(self, prompt: str, timeout: int = 10, 
                            default: str = "") -> str:
         """Prompt user with automatic timeout for automation compatibility"""
-        def timeout_handler(signum, frame):
+        import threading
+        
+        def timeout_handler():
             raise TimeoutError("Prompt timeout")
         
         print(f"{prompt} (auto-continues in {timeout}s): ", end="", flush=True)
         
         try:
-            # Set up signal handler for timeout (Unix only)
-            if hasattr(signal, 'SIGALRM'):
-                signal.signal(signal.SIGALRM, timeout_handler)
-                signal.alarm(timeout)
+            # Use threading timer for cross-platform compatibility
+            timer = None
             
-            response = input()
+            if platform.system() != "Windows":
+                # Unix systems - use signal if available
+                def signal_handler(signum, frame):
+                    raise TimeoutError("Prompt timeout")
+                
+                if hasattr(signal, 'SIGALRM') and hasattr(signal, 'alarm'):
+                    signal.signal(signal.SIGALRM, signal_handler)  # type: ignore
+                    signal.alarm(timeout)  # type: ignore
+                else:
+                    # Fallback to timer for Unix without signal support
+                    timer = threading.Timer(timeout, timeout_handler)
+                    timer.start()
+            else:
+                # Windows - use threading timer
+                timer = threading.Timer(timeout, timeout_handler)
+                timer.start()
             
-            if hasattr(signal, 'SIGALRM'):
-                signal.alarm(0)  # Cancel alarm
-            
-            return response
+            try:
+                response = input()
+                
+                # Cancel timeout
+                if platform.system() != "Windows" and hasattr(signal, 'SIGALRM') and hasattr(signal, 'alarm'):
+                    signal.alarm(0)  # type: ignore
+                elif timer:
+                    timer.cancel()
+                
+                return response
+            except EOFError:
+                # Handle case where input is not available
+                print()
+                self.logger.warning(f"No input available, using default: {default}")
+                return default
+                
         except (TimeoutError, KeyboardInterrupt):
             print()
             self.logger.warning(f"No input detected, using default: {default}")
