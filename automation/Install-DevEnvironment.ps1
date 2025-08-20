@@ -1,3 +1,15 @@
+<#
+.SYNOPSIS
+    Sets up the development environment for Windows 11 using Infrastructure as Code principles.
+.DESCRIPTION
+    Detailed description of the script's functionality, purpose, and behavior.
+    Include any important prerequisites or dependencies.
+    Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
+
+    PROMPT NOTICE:
+    Any prompt requiring user input will automatically continue/exit after 10 seconds if no input is provided. This ensures automation and prevents blocking.
+#>
+
 # Install-DevEnvironment.ps1 - IaC Development Environment Setup
 # Windows 11 PowerShell 5.x Compatible with WinUtil-style Admin Self-Elevation
 # Infrastructure as Code approach with dynamic asset management
@@ -303,7 +315,7 @@ function Start-Installation {
             @{Id="GitHub.copilot-chat"; Name="GitHub Copilot Chat"},
             @{Id="bradlc.vscode-tailwindcss"; Name="Tailwind CSS IntelliSense"},
             @{Id="esbenp.prettier-vscode"; Name="Prettier"},
-            @{Id="ms-vscode.vscode-json"; Name="JSON"}
+                @{Id="zainchen.json"; Name="JSON"}
         )
         
         foreach ($extension in $extensions) {
@@ -337,8 +349,16 @@ function Start-Installation {
     Write-Log "Log file: $LogPath" -Level "INFO"
     
     if (-not $Silent) {
-        Write-Host "`nInstallation completed successfully! Press Enter to exit..." -ForegroundColor Green
-        Read-Host
+        Write-Host "`nInstallation completed successfully! Press Enter to exit (auto-continues in 10 seconds)..." -ForegroundColor Green
+        $promptJob = Start-Job { Read-Host }
+        $jobResult = Wait-Job $promptJob -Timeout 10
+        if ($jobResult -eq $null) {
+            Write-Host "No input detected, continuing automatically..." -ForegroundColor Yellow
+            Stop-Job $promptJob | Out-Null
+        } else {
+            Receive-Job $promptJob | Out-Null
+        }
+        Remove-Job $promptJob | Out-Null
     }
 }
 

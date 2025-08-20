@@ -1,3 +1,15 @@
+<#
+.SYNOPSIS
+    Maintains and updates the development environment for Windows 11 using Infrastructure as Code principles.
+.DESCRIPTION
+    Detailed description of the script's functionality, purpose, and behavior.
+    Include any important prerequisites or dependencies.
+    Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
+
+    PROMPT NOTICE:
+    Any prompt requiring user input will automatically continue/exit after 10 seconds if no input is provided. This ensures automation and prevents blocking.
+#>
+
 # Update-Environment.ps1 - Development Environment Maintenance
 # Windows 11 PowerShell 5.x Compatible with WinUtil-style self-elevation
 # Infrastructure as Code approach for environment updates
@@ -59,7 +71,16 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
         
         Write-Host "Update completed in elevated session." -ForegroundColor Green
         if (-not ${Silent}) {
-            Read-Host "Press Enter to exit"
+            Write-Host "Press Enter to exit (auto-continues in 10 seconds)..." -ForegroundColor Green
+            $promptJob = Start-Job { Read-Host }
+            $jobResult = Wait-Job $promptJob -Timeout 10
+            if ($jobResult -eq $null) {
+                Write-Host "No input detected, continuing automatically..." -ForegroundColor Yellow
+                Stop-Job $promptJob | Out-Null
+            } else {
+                Receive-Job $promptJob | Out-Null
+            }
+            Remove-Job $promptJob | Out-Null
         }
         exit 0
     } catch {
@@ -250,7 +271,16 @@ function Start-Update {
     Write-Log "Log file: ${LogPath}" -Level "INFO"
     
     if (-not ${Silent}) {
-        Read-Host "Press Enter to exit"
+        Write-Host "Press Enter to exit (auto-continues in 10 seconds)..." -ForegroundColor Green
+        $promptJob = Start-Job { Read-Host }
+        $jobResult = Wait-Job $promptJob -Timeout 10
+        if ($jobResult -eq $null) {
+            Write-Host "No input detected, continuing automatically..." -ForegroundColor Yellow
+            Stop-Job $promptJob | Out-Null
+        } else {
+            Receive-Job $promptJob | Out-Null
+        }
+        Remove-Job $promptJob | Out-Null
     }
 }
 
