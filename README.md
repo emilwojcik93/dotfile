@@ -5,16 +5,38 @@ A professional Infrastructure as Code (IaC) setup for Windows 11, PowerShell, WS
 ## 🚀 Quick Start
 
 **Prerequisites:**
-- Windows 11 with Administrator access
-- Internet connection for package downloads
+- Windows 11 (PowerShell 5.x included)
+- Internet connection for package downloads  
 - App Installer (winget) - Available from Microsoft Store
 
-**One-Command Installation:**
+**One-Command Installation (Self-Elevating):**
 ```powershell
-# Run as Administrator
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+# No need to run as Administrator - script will self-elevate automatically
 .\automation\Install-DevEnvironment.ps1
 ```
+
+**Silent Installation (Recommended for automation):**
+```powershell
+# Completely unattended installation with automatic elevation  
+.\automation\Install-DevEnvironment.ps1 -Silent
+```
+
+## 🛡️ WinUtil-Style Self-Elevation
+
+Our installation script uses the same proven self-elevation pattern as [ChrisTitusTech's WinUtil](https://github.com/ChrisTitusTech/winutil):
+
+- **Automatic Admin Detection**: Checks for Administrator privileges
+- **Smart Parameter Preservation**: Maintains all command-line arguments during elevation
+- **Windows Terminal Integration**: Uses Windows Terminal when available
+- **Unattended Mode**: Automatically adds `-Silent` flag for elevated sessions
+- **Error Handling**: Graceful fallback and error reporting
+
+**How it works:**
+1. Script detects if running as Administrator
+2. If not, builds argument list preserving all parameters
+3. Launches new elevated session with Windows Terminal (if available) or PowerShell
+4. Continues installation with same parameters in elevated context
+5. No user interaction required for elevation process
 
 ## 🏗️ Infrastructure as Code Architecture
 
@@ -31,8 +53,8 @@ dotfile/
 │   ├── git/              # Git configuration
 │   └── ssh/              # SSH keys and config
 ├── automation/           # Installation and deployment scripts
-│   ├── Install-DevEnvironment.ps1
-│   └── Update-Environment.ps1
+│   ├── Install-DevEnvironment.ps1  # Self-elevating installer
+│   └── Update-Environment.ps1      # Self-elevating updater
 ├── docs/                 # Documentation and guides
 │   ├── setup/            # Setup instructions
 │   └── troubleshooting/  # Common issues and solutions
@@ -47,6 +69,7 @@ dotfile/
 3. **Version Control**: Only source code, scripts, and configurations stored
 4. **Cross-Platform**: Windows 11, WSL, Docker, and Python support
 5. **Professional Quality**: Enterprise-grade automation and error handling
+6. **Unattended Operation**: No interactive prompts in silent mode
 
 ## 🛠️ Features
 
@@ -75,35 +98,41 @@ dotfile/
 
 ## 🔧 Installation Options
 
-### Full Installation (Recommended)
+### Standard Installation (Self-Elevating)
 ```powershell
 .\automation\Install-DevEnvironment.ps1
 ```
 
-### Silent Installation
+### Silent Installation (Unattended)
 ```powershell
 .\automation\Install-DevEnvironment.ps1 -Silent
 ```
 
-### Custom Installation
+### Custom Installation Options
 ```powershell
 # Skip specific components
 .\automation\Install-DevEnvironment.ps1 -SkipPython -SkipDocker
 
 # Custom log location
 .\automation\Install-DevEnvironment.ps1 -LogPath "C:\Logs\DevInstall.log"
+
+# Force installation even with validation errors
+.\automation\Install-DevEnvironment.ps1 -Force
+
+# Silent mode with custom options
+.\automation\Install-DevEnvironment.ps1 -Silent -SkipVSCodeExtensions
 ```
 
 ## 📋 What Gets Installed
 
-### Core Applications (via winget)
-- Visual Studio Code
+### Core Applications (via winget - unattended mode)
+- Visual Studio Code (with CLI integration)
 - Git for Windows
 - PowerShell 7+
 - Python 3.12 (optional)
 - Docker Desktop (optional)
 
-### VS Code Extensions
+### VS Code Extensions (silent installation)
 - PowerShell extension
 - Python extension  
 - WSL extension
@@ -117,6 +146,29 @@ dotfile/
 - VS Code settings with Beast Mode integration
 - Beast Mode 3.1 Enhanced chatmode file
 - Git configuration templates
+
+## 🔄 Environment Maintenance
+
+Update your environment with the same self-elevating pattern:
+
+### Standard Update
+```powershell
+.\automation\Update-Environment.ps1
+```
+
+### Silent Update (Recommended for scheduled tasks)
+```powershell
+.\automation\Update-Environment.ps1 -Silent
+```
+
+### Selective Updates
+```powershell
+# Update only packages
+.\automation\Update-Environment.ps1 -UpdateExtensions:$false -UpdateConfigs:$false
+
+# Update only configurations  
+.\automation\Update-Environment.ps1 -UpdatePackages:$false -UpdateExtensions:$false
+```
 
 ## 🐍 Python Development
 
@@ -173,6 +225,7 @@ All scripts use proper Windows 11 PowerShell 5.x syntax:
 - **Special Characters**: `${var}%` instead of `$var%`
 - **Path Handling**: `"${var}.exe"` instead of `"$var.exe"`
 - **UTF-8/ASCII Only**: No Unicode characters in source files
+- **Self-Elevation**: WinUtil-style admin privilege handling
 
 ## 🔍 System Information
 
@@ -202,43 +255,52 @@ VS Code includes WSL extension for seamless development across Windows and Linux
 
 ### Common Issues
 
-**Execution Policy Error:**
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
+**Script Won't Run:**
+- Script automatically handles execution policy and elevation
+- If still having issues: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
 **Winget Not Found:**
 - Install "App Installer" from Microsoft Store
 - Restart PowerShell
 
-**Administrator Required:**
-- Right-click PowerShell → "Run as Administrator"
+**Installation Stuck on Interactive Prompt:**
+- Use `-Silent` parameter for unattended installation
+- Script automatically prevents interactive prompts in elevated mode
 
-**VS Code Extensions Not Installing:**
-- Ensure VS Code is installed first
-- Check internet connection
-- Run: `code --version`
+### Unattended Installation Advantages
+
+- **No User Interaction**: Silent mode prevents all interactive prompts
+- **Automatic Elevation**: No need to manually run as Administrator
+- **Comprehensive Logging**: Timestamped logs for troubleshooting
+- **Error Resilience**: Continues installation even if some components fail
+- **Scheduled Execution**: Perfect for automated deployment
 
 ### Log Files
 
-Installation logs are saved to `%TEMP%\DevEnvInstall.log` by default.
+Installation logs with timestamps:
+- Installation: `%TEMP%\DevEnvInstall_YYYY-MM-DD_HH-mm-ss.log`
+- Updates: `%TEMP%\DevEnvUpdate_YYYY-MM-DD_HH-mm-ss.log`
 
 ## 🔄 Updates
 
-Update the environment:
+Update the environment with the same self-elevating pattern:
 
 ```powershell
-# Future: Update script
+# Standard update (self-elevating)
 .\automation\Update-Environment.ps1
+
+# Silent update (unattended)
+.\automation\Update-Environment.ps1 -Silent
 ```
 
 ## 📝 Contributing
 
 1. Follow IaC principles - no static assets
-2. Use PowerShell 5.x compatible syntax
-3. Test on clean Windows 11 systems
-4. Update documentation for changes
-5. Maintain UTF-8/ASCII character compliance
+2. Use PowerShell 5.x compatible syntax with `${var}` brackets
+3. Implement WinUtil-style self-elevation for admin scripts
+4. Test on clean Windows 11 systems in both interactive and silent modes
+5. Update documentation for changes
+6. Maintain UTF-8/ASCII character compliance
 
 ## 📄 License
 
@@ -246,14 +308,14 @@ MIT License - Feel free to adapt for your development needs.
 
 ## 🎯 Next Steps After Installation
 
-1. **Restart Terminal**: Launch new PowerShell window
+1. **No Terminal Restart Needed**: Script installs in current session
 2. **Test Profile**: Type `beast` to see Beast Mode info
-3. **Open VS Code**: Launch and check extensions loaded
+3. **Open VS Code**: Launch and check extensions loaded automatically
 4. **Configure Git**: Set up your Git user details
-5. **Install WSL**: Run `wsl --install` if needed
+5. **Install WSL**: Run `wsl --install` if needed (optional)
 6. **Test Python**: Create and activate virtual environment
 7. **Test Docker**: Verify Docker Desktop is running
 
 ---
 
-**Beast Mode 3.1 Enhanced - IaC Edition**: Modern development environment with autonomous AI assistance, professional tooling, and Infrastructure as Code principles.
+**Beast Mode 3.1 Enhanced - IaC Edition**: Modern development environment with autonomous AI assistance, professional tooling, WinUtil-style automation, and Infrastructure as Code principles for completely unattended installation and maintenance.

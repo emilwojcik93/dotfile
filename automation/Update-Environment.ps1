@@ -1,5 +1,5 @@
 # Update-Environment.ps1 - Development Environment Maintenance
-# Windows 11 PowerShell 5.x Compatible
+# Windows 11 PowerShell 5.x Compatible with WinUtil-style self-elevation
 # Infrastructure as Code approach for environment updates
 
 [CmdletBinding()]
@@ -20,9 +20,69 @@ param(
     [switch]${UpdateConfigs} = $true
 )
 
+# Admin Self-Elevation (WinUtil style)
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host "Update-Environment needs to be run as Administrator. Attempting to relaunch..." -ForegroundColor Yellow
+    
+    ${argList} = @()
+    $PSBoundParameters.GetEnumerator() | ForEach-Object {
+        ${argList} += if (${_.Value} -is [switch] -and ${_.Value}) {
+            "-${_.Key}"
+        } elseif (${_.Value} -is [array]) {
+            "-${_.Key} $(${_.Value} -join ',')"
+        } elseif (${_.Value}) {
+            "-${_.Key} '${_.Value}'"
+        }
+    }
+    
+    # Always add -Silent for elevated execution to avoid interactive prompts
+    if (-not $PSBoundParameters.ContainsKey('Silent')) {
+        ${argList} += "-Silent"
+    }
+    
+    ${script} = if ($PSCommandPath) {
+        "& { & `'$($PSCommandPath)`' $(${argList} -join ' ') }"
+    } else {
+        Write-Error "Script path not available for elevation"
+        exit 1
+    }
+    
+    ${powershellCmd} = if (Get-Command pwsh -ErrorAction SilentlyContinue) { "pwsh" } else { "powershell" }
+    ${processCmd} = if (Get-Command wt.exe -ErrorAction SilentlyContinue) { "wt.exe" } else { "${powershellCmd}" }
+    
+    try {
+        if (${processCmd} -eq "wt.exe") {
+            Start-Process ${processCmd} -ArgumentList "${powershellCmd} -ExecutionPolicy Bypass -NoProfile -Command `"${script}`"" -Verb RunAs -Wait
+        } else {
+            Start-Process ${processCmd} -ArgumentList "-ExecutionPolicy Bypass -NoProfile -Command `"${script}`"" -Verb RunAs -Wait
+        }
+        
+        Write-Host "Update completed in elevated session." -ForegroundColor Green
+        if (-not ${Silent}) {
+            Read-Host "Press Enter to exit"
+        }
+        exit 0
+    } catch {
+        Write-Error "Failed to start elevated process: ${_.Exception.Message}"
+        exit 1
+    }
+}
+
 # Script metadata
-${scriptVersion} = "1.0.0"
+${scriptVersion} = "1.1.0"
 ${scriptName} = "Update-Environment"
+${dateTime} = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
+
+# Set PowerShell window title for admin session
+$Host.UI.RawUI.WindowTitle = "Update-Environment (Admin) - ${scriptVersion}"
+
+# Initialize logging with timestamped log file
+if (-not ${LogPath}.Contains(${dateTime})) {
+    ${logDir} = Split-Path ${LogPath} -Parent
+    ${logName} = [System.IO.Path]::GetFileNameWithoutExtension(${LogPath})
+    ${logExt} = [System.IO.Path]::GetExtension(${LogPath})
+    ${LogPath} = Join-Path ${logDir} "${logName}_${dateTime}${logExt}"
+}
 
 # Logging function
 function Write-Log {
@@ -37,26 +97,30 @@ function Write-Log {
     ${timestamp} = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     ${logEntry} = "[${timestamp}] [${Level}] ${Message}"
     
-    switch (${Level}) {
-        "INFO" { Write-Host ${logEntry} -ForegroundColor White }
-        "WARN" { Write-Host ${logEntry} -ForegroundColor Yellow }
-        "ERROR" { Write-Host ${logEntry} -ForegroundColor Red }
-        "SUCCESS" { Write-Host ${logEntry} -ForegroundColor Green }
+    # Write to console with color (only if not silent)
+    if (-not ${Silent}) {
+        switch (${Level}) {
+            "INFO" { Write-Host ${logEntry} -ForegroundColor White }
+            "WARN" { Write-Host ${logEntry} -ForegroundColor Yellow }
+            "ERROR" { Write-Host ${logEntry} -ForegroundColor Red }
+            "SUCCESS" { Write-Host ${logEntry} -ForegroundColor Green }
+        }
     }
     
+    # Always write to log file
     Add-Content -Path ${LogPath} -Value ${logEntry} -ErrorAction SilentlyContinue
 }
 
-# Update winget packages
+# Update winget packages with unattended mode
 function Update-WingetPackages {
     Write-Log "Updating winget packages..." -Level "INFO"
     
     try {
-        ${result} = winget upgrade --all --silent --accept-package-agreements --accept-source-agreements
+        ${result} = winget upgrade --all --silent --accept-package-agreements --accept-source-agreements --disable-interactivity 2>$null
         if ($LASTEXITCODE -eq 0) {
             Write-Log "Winget packages updated successfully" -Level "SUCCESS"
         } else {
-            Write-Log "Some packages may have failed to update" -Level "WARN"
+            Write-Log "Some packages may have failed to update (Exit code: $LASTEXITCODE)" -Level "WARN"
         }
     } catch {
         Write-Log "Error updating winget packages: ${_.Exception.Message}" -Level "ERROR"
@@ -74,11 +138,21 @@ function Update-VSCodeExtensions {
             return
         }
         
-        ${result} = code --list-extensions | ForEach-Object {
-            code --install-extension ${_} --force
+        ${extensions} = code --list-extensions
+        ${updateCount} = 0
+        
+        foreach (${extension} in ${extensions}) {
+            try {
+                code --install-extension ${extension} --force 2>$null
+                if ($LASTEXITCODE -eq 0) {
+                    ${updateCount}++
+                }
+            } catch {
+                Write-Log "Failed to update extension: ${extension}" -Level "WARN"
+            }
         }
         
-        Write-Log "VS Code extensions updated" -Level "SUCCESS"
+        Write-Log "Updated ${updateCount} VS Code extensions" -Level "SUCCESS"
     } catch {
         Write-Log "Error updating VS Code extensions: ${_.Exception.Message}" -Level "ERROR"
     }
@@ -89,6 +163,8 @@ function Update-ConfigFiles {
     Write-Log "Updating configuration files..." -Level "INFO"
     
     try {
+        ${updateCount} = 0
+        
         # Update PowerShell profile
         ${profilePath} = $PROFILE
         ${sourceProfile} = Join-Path $PSScriptRoot "..\src\powershell\profile.ps1"
@@ -100,6 +176,7 @@ function Update-ConfigFiles {
             if (${sourceHash}.Hash -ne ${destHash}.Hash) {
                 Copy-Item -Path ${sourceProfile} -Destination ${profilePath} -Force
                 Write-Log "PowerShell profile updated" -Level "SUCCESS"
+                ${updateCount}++
             } else {
                 Write-Log "PowerShell profile is up to date" -Level "INFO"
             }
@@ -107,7 +184,7 @@ function Update-ConfigFiles {
         
         # Update VS Code settings
         ${vscodeSettingsDir} = "${env:APPDATA}\Code\User"
-        ${sourceSettings} = Join-Path $PSScriptRoot "..\configs\vscode\settings.json"
+        ${sourceSettings} = Join-Path $PSScriptRoot "..\configs\settings.json"
         ${destSettings} = Join-Path ${vscodeSettingsDir} "settings.json"
         
         if ((Test-Path ${sourceSettings}) -and (Test-Path ${destSettings})) {
@@ -117,6 +194,7 @@ function Update-ConfigFiles {
             if (${sourceHash}.Hash -ne ${destHash}.Hash) {
                 Copy-Item -Path ${sourceSettings} -Destination ${destSettings} -Force
                 Write-Log "VS Code settings updated" -Level "SUCCESS"
+                ${updateCount}++
             } else {
                 Write-Log "VS Code settings are up to date" -Level "INFO"
             }
@@ -134,10 +212,13 @@ function Update-ConfigFiles {
             if (${sourceHash}.Hash -ne ${destHash}.Hash) {
                 Copy-Item -Path ${sourceBeastMode} -Destination ${destBeastMode} -Force
                 Write-Log "Beast Mode chatmode updated" -Level "SUCCESS"
+                ${updateCount}++
             } else {
                 Write-Log "Beast Mode chatmode is up to date" -Level "INFO"
             }
         }
+        
+        Write-Log "Updated ${updateCount} configuration files" -Level "SUCCESS"
         
     } catch {
         Write-Log "Error updating configuration files: ${_.Exception.Message}" -Level "ERROR"
@@ -173,10 +254,12 @@ function Start-Update {
     }
 }
 
-# Execute update
+# Execute update with error handling
 try {
     Start-Update
+    exit 0
 } catch {
     Write-Log "Unexpected error during update: ${_.Exception.Message}" -Level "ERROR"
+    Write-Log "Stack trace: ${_.ScriptStackTrace}" -Level "ERROR"
     exit 1
 }
