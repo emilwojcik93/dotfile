@@ -86,7 +86,66 @@ winget search Git.Git --versions
 .\automation\Install-DevEnvironment.ps1 -Silent
 ```
 
-## 🛡️ WinUtil-Style Self-Elevation
+## � WSL Docker Environment Setup
+
+For developers who prefer Docker Engine in WSL Ubuntu over Docker Desktop, use our specialized WSL Docker setup script. This script uses root commands to avoid password prompts and provides a complete containerized development environment.
+
+### Features
+- **Password-Free Setup**: Uses `wsl --user root bash -c '<COMMAND>'` to avoid sudo prompts
+- **Official Docker Installation**: Follows official Docker Engine installation guidelines
+- **TCP Socket Configuration**: Enables Windows integration via port 2375
+- **Comprehensive Logging**: All operations logged to timestamped files in `$env:TEMP`
+- **Full Validation**: 7-step validation process ensures everything works correctly
+- **SystemD Integration**: Proper service management with Docker daemon configuration
+
+### Quick Start
+```powershell
+# Standard WSL Docker setup with validation
+.\automation\Install-WSLDockerEnvironment.ps1
+
+# Silent installation for automation
+.\automation\Install-WSLDockerEnvironment.ps1 -Silent
+
+# Clean installation (removes existing Ubuntu WSL)
+.\automation\Install-WSLDockerEnvironment.ps1 -CleanInstall -Force
+
+# Skip validation for faster setup
+.\automation\Install-WSLDockerEnvironment.ps1 -SkipValidation
+```
+
+### What It Does
+1. **WSL Availability Check**: Verifies WSL is enabled and configured
+2. **Ubuntu Distribution**: Installs/detects Ubuntu WSL distribution via registry
+3. **Sudoers Configuration**: Sets up NOPASSWD access for seamless operations
+4. **Python Installation**: Installs Python 3 and development tools
+5. **Docker Installation**: Installs Docker CE following official best practices
+6. **Post-Installation**: Configures Docker daemon, TCP socket, and systemd services
+7. **Windows Integration**: Sets DOCKER_HOST environment variable for VS Code
+8. **Comprehensive Validation**: Tests all components and connectivity
+
+### Log Files
+All operations are logged with timestamps to help troubleshoot any issues:
+```powershell
+# View latest log
+$logFile = Get-ChildItem $env:TEMP -Filter "*WSL-Docker-Setup*" | Sort CreationTime -Desc | Select -First 1
+Get-Content $logFile.FullName
+```
+
+### Docker Integration
+After installation, Docker commands work seamlessly from Windows PowerShell:
+```powershell
+# Test Docker connectivity
+docker ps
+docker --version
+docker compose --version
+
+# Run hello-world container
+docker run --rm hello-world
+```
+
+**No Docker Desktop Required**: This setup provides native Docker Engine in WSL Ubuntu, eliminating the need for Docker Desktop while maintaining full compatibility with VS Code Docker extension.
+
+## �🛡️ WinUtil-Style Self-Elevation
 
 Our installation script uses the same proven self-elevation pattern as [ChrisTitusTech's WinUtil](https://github.com/ChrisTitusTech/winutil):
 
@@ -118,8 +177,10 @@ dotfile/
 │   ├── git/              # Git configuration
 │   └── ssh/              # SSH keys and config
 ├── automation/           # Installation and deployment scripts
-│   ├── Install-DevEnvironment.ps1  # Self-elevating installer
-│   └── Update-Environment.ps1      # Self-elevating updater
+│   ├── Install-DevEnvironment.ps1     # Self-elevating installer
+│   ├── Install-Environment-Auto.ps1   # Auto-detection installer
+│   ├── Install-WSLDockerEnvironment.ps1 # WSL Docker setup (root commands)
+│   └── Update-Environment.ps1         # Self-elevating updater
 ├── docs/                 # Documentation and guides
 │   ├── setup/            # Setup instructions
 │   └── troubleshooting/  # Common issues and solutions

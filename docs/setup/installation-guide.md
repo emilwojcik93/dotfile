@@ -74,6 +74,51 @@ cd dotfile
 .\automation\Install-DevEnvironment.ps1 -Silent -SkipVSCodeExtensions
 ```
 
+### Method 4: WSL Docker Environment Setup
+For developers who prefer Docker Engine in WSL Ubuntu over Docker Desktop:
+
+```powershell
+# Standard WSL Docker setup with comprehensive validation
+.\automation\Install-WSLDockerEnvironment.ps1
+
+# Silent installation for automation (recommended)
+.\automation\Install-WSLDockerEnvironment.ps1 -Silent
+
+# Clean installation - removes existing Ubuntu WSL distribution
+.\automation\Install-WSLDockerEnvironment.ps1 -CleanInstall -Force
+
+# Skip validation for faster setup
+.\automation\Install-WSLDockerEnvironment.ps1 -SkipValidation
+```
+
+**WSL Docker Features:**
+- **Root Command Automation**: Uses `wsl --user root bash -c '<COMMAND>'` to avoid password prompts
+- **Official Docker Installation**: Follows Docker Engine installation best practices
+- **TCP Socket Configuration**: Enables Windows integration via port 2375 (NO Docker Desktop required)
+- **SystemD Integration**: Proper service management and Docker daemon configuration
+- **Comprehensive Logging**: All operations logged to `$env:TEMP\WSL-Docker-Setup-*.log`
+- **Full Validation**: 7-step validation process ensures complete functionality
+
+**What Gets Installed:**
+1. Ubuntu WSL distribution (if not present)
+2. Sudoers NOPASSWD configuration for seamless operations
+3. Python 3 and development tools
+4. Docker CE (Community Edition) following official guidelines
+5. Docker Compose plugin
+6. TCP socket configuration for Windows integration
+7. DOCKER_HOST environment variable setup
+
+**Log File Location:**
+All operations are logged with timestamps for troubleshooting:
+```powershell
+# Find latest log file
+$logFile = Get-ChildItem $env:TEMP -Filter "*WSL-Docker-Setup*" | Sort CreationTime -Desc | Select -First 1
+Write-Host "Log file: $($logFile.FullName)"
+
+# View log contents
+Get-Content $logFile.FullName | Select-Object -Last 20
+```
+
 ## WinUtil-Style Self-Elevation
 
 Our scripts use the same proven pattern as [ChrisTitusTech's WinUtil](https://github.com/ChrisTitusTech/winutil):
