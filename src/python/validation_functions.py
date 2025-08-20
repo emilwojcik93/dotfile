@@ -258,52 +258,34 @@ class ScriptValidator:
                            default: str = "") -> str:
         """Prompt user with automatic timeout for automation compatibility"""
         import threading
+        import time
         
-        def timeout_handler():
-            raise TimeoutError("Prompt timeout")
+        # Flag to track if input was received
+        input_received = threading.Event()
+        user_input = [default]  # Use list to make it mutable
+        
+        def get_input():
+            try:
+                result = input()
+                user_input[0] = result
+                input_received.set()
+            except (EOFError, KeyboardInterrupt):
+                input_received.set()
         
         print(f"{prompt} (auto-continues in {timeout}s): ", end="", flush=True)
         
-        try:
-            # Use threading timer for cross-platform compatibility
-            timer = None
-            
-            if platform.system() != "Windows":
-                # Unix systems - use signal if available
-                def signal_handler(signum, frame):
-                    raise TimeoutError("Prompt timeout")
-                
-                if hasattr(signal, 'SIGALRM') and hasattr(signal, 'alarm'):
-                    signal.signal(signal.SIGALRM, signal_handler)  # type: ignore
-                    signal.alarm(timeout)  # type: ignore
-                else:
-                    # Fallback to timer for Unix without signal support
-                    timer = threading.Timer(timeout, timeout_handler)
-                    timer.start()
-            else:
-                # Windows - use threading timer
-                timer = threading.Timer(timeout, timeout_handler)
-                timer.start()
-            
-            try:
-                response = input()
-                
-                # Cancel timeout
-                if platform.system() != "Windows" and hasattr(signal, 'SIGALRM') and hasattr(signal, 'alarm'):
-                    signal.alarm(0)  # type: ignore
-                elif timer:
-                    timer.cancel()
-                
-                return response
-            except EOFError:
-                # Handle case where input is not available
-                print()
-                self.logger.warning(f"No input available, using default: {default}")
-                return default
-                
-        except (TimeoutError, KeyboardInterrupt):
-            print()
-            self.logger.warning(f"No input detected, using default: {default}")
+        # Start input thread
+        input_thread = threading.Thread(target=get_input, daemon=True)
+        input_thread.start()
+        
+        # Wait for input or timeout
+        if input_received.wait(timeout):
+            # Input received within timeout
+            return user_input[0]
+        else:
+            # Timeout occurred
+            print()  # New line after the prompt
+            self.logger.warning(f"No input detected within {timeout}s, using default: {default}")
             return default
 
 
