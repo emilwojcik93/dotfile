@@ -8,6 +8,53 @@ A professional Infrastructure as Code (IaC) setup for Windows 11, PowerShell, WS
 - Windows 11 (PowerShell 5.x included)
 - Internet connection for package downloads
 - App Installer (winget) - Available from Microsoft Store
+- VS Code (for Beast Mode 3.1 Enhanced)
+
+### 🎯 Beast Mode 3.1 Enhanced Setup
+
+**Step 1: Configure VS Code Settings**
+```json
+{
+    "chat.tools.autoApprove": true,
+    "chat.agent.maxRequests": 100
+}
+```
+
+**Step 2: Install Beast Mode Custom Chat Mode**
+1. Open VS Code
+2. Go to Chat > "..." > "Configure Modes"
+3. Select "Create new custom chat mode file"  
+4. Choose "User Data Folder" (makes it global)
+5. Paste contents from `Beast Mode.chatmode.md`
+6. Save as "Beast Mode 3.1 Enhanced"
+
+**Step 3: Activate Beast Mode**
+- Select "Beast Mode 3.1 Enhanced" from agent dropdown in VS Code Chat
+- Beast Mode is now ready with enhanced IaC workflows!
+
+### 🏃‍♂️ Environment Auto-Detection & Setup
+
+**Comprehensive Environment Setup:**
+```powershell
+# Auto-detects and installs all components
+.\automation\Install-Environment-Auto.ps1 -Silent
+```
+
+**Components Auto-Detected:**
+- ✅ Windows 11 (mandatory) - Build validation and OS version check
+- ✅ PowerShell 5.x (mandatory) - Primary automation environment  
+- ✅ PowerShell 7.x (optional) - Supplementary with enhanced features
+- ✅ Python Windows (optional) - Native Windows development
+- ✅ WSL Ubuntu (optional) - Registry-based detection with user mapping
+- ✅ Python in WSL (optional) - Cross-platform Python development
+- ✅ Docker in WSL (optional) - Container development (NO Docker Desktop)
+- ✅ Docker Compose (optional) - Multi-container orchestration
+
+**Registry-Based WSL Detection:**
+- Checks `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss`
+- Validates distribution names and user IDs
+- Automatic fallback to command-based detection
+- Ubuntu 24.04.3 LTS compatibility verified
 
 **Winget Package Validation:**
 Use these commands to verify package availability before installation:
@@ -228,6 +275,8 @@ Beast Mode is integrated into VS Code as a chat mode:
    - PowerShell 5.x compatibility
    - shadcn/ui documentation integration
 
+📖 **[Complete Beast Mode Setup Guide](docs/setup/beast-mode-guide.md)** - Comprehensive installation, configuration, and usage documentation.
+
 ### Beast Mode Personas
 - **Product Manager**: Requirements gathering and PRDs
 - **Software Architect**: Technical design and implementation guides
@@ -311,7 +360,24 @@ Update the environment with the same self-elevating pattern:
 .\automation\Update-Environment.ps1 -Silent
 ```
 
-## 📝 Contributing
+## � Documentation
+
+### Setup & Configuration
+- **[Installation Guide](docs/setup/installation-guide.md)** - Complete setup instructions and requirements
+- **[Beast Mode Complete Guide](docs/setup/beast-mode-guide.md)** - Comprehensive Beast Mode 3.1 setup and usage
+- **[Validation Report](docs/setup/validation-report.md)** - Environment validation and testing procedures
+
+### Troubleshooting
+- **[Common Issues](docs/troubleshooting/common-issues.md)** - General troubleshooting and solutions
+- **[Beast Mode Issues](docs/troubleshooting/beast-mode-issues.md)** - Specific Beast Mode troubleshooting
+- **[Installation Fixes](docs/troubleshooting/installation-fixes.md)** - Environment setup issue resolution
+
+### Advanced Topics
+- **[PowerShell Functions](src/powershell/functions/)** - Custom PowerShell modules and utilities
+- **[Script Templates](src/powershell/scripts/)** - Reusable script templates with IaC principles
+- **[Python Modules](src/python/modules/)** - Python utilities and validation functions
+
+## �📝 Contributing
 
 1. Follow IaC principles - no static assets
 2. Use PowerShell 5.x compatible syntax with `${var}` brackets

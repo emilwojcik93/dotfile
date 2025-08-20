@@ -2,6 +2,11 @@
 
 Common issues and solutions for the development environment setup.
 
+## 📚 Specialized Troubleshooting Guides
+
+- **[Beast Mode Issues](beast-mode-issues.md)** - Complete Beast Mode 3.1 Enhanced troubleshooting
+- **[Installation Fixes](installation-fixes.md)** - Environment setup and automation issues
+
 ## Installation Issues
 
 ### PowerShell Execution Policy Error
