@@ -93,17 +93,17 @@ function Write-Log {
         [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS")]
         [string]$Level = "INFO"
     )
-    
+
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logEntry = "[$timestamp] [$Level] $Message"
-    
+
     switch ($Level) {
         "INFO" { Write-Host $logEntry -ForegroundColor White }
         "WARN" { Write-Host $logEntry -ForegroundColor Yellow }
         "ERROR" { Write-Host $logEntry -ForegroundColor Red }
         "SUCCESS" { Write-Host $logEntry -ForegroundColor Green }
     }
-    
+
     try {
         Add-Content -Path $LogPath -Value $logEntry -ErrorAction SilentlyContinue
     } catch {
@@ -134,13 +134,13 @@ function Test-InternetConnection {
     try {
         # Test DNS resolution
         [System.Net.Dns]::GetHostAddresses("github.com") | Out-Null
-        
+
         # Test HTTP connectivity with timeout
         $webRequest = [System.Net.WebRequest]::Create("https://github.com")
         $webRequest.Timeout = 5000
         $response = $webRequest.GetResponse()
         $response.Close()
-        
+
         return $true
     } catch {
         Write-Log "Internet connectivity test failed: $($_.Exception.Message)" -Level "WARN"
@@ -167,7 +167,7 @@ function Test-PowerShellVersion {
     #>
     $minVersion = [version]"5.1.0.0"
     $currentVersion = $PSVersionTable.PSVersion
-    
+
     if ($currentVersion -ge $minVersion) {
         Write-Log "PowerShell version check passed: $currentVersion" -Level "INFO"
         return $true
@@ -187,23 +187,23 @@ function Test-ToolAvailability {
     param(
         [Parameter(Mandatory=$true)]
         [string]$ToolName,
-        
+
         [Parameter(Mandatory=$false)]
         [string[]]$AlternativeNames = @()
     )
-    
+
     # Test primary tool name
     if (Get-Command $ToolName -ErrorAction SilentlyContinue) {
         return $true
     }
-    
+
     # Test alternative names
     foreach ($altName in $AlternativeNames) {
         if (Get-Command $altName -ErrorAction SilentlyContinue) {
             return $true
         }
     }
-    
+
     return $false
 }
 
@@ -217,27 +217,27 @@ function Test-PathValid {
     param(
         [Parameter(Mandatory=$true)]
         [string]$Path,
-        
+
         [Parameter(Mandatory=$false)]
         [ValidateSet("Any", "Container", "Leaf")]
         [string]$PathType = "Any",
-        
+
         [Parameter(Mandatory=$false)]
         [switch]$CheckWriteAccess
     )
-    
+
     # Basic path existence check
     if (-not (Test-Path $Path)) {
         return $false
     }
-    
+
     # Type-specific validation
     if ($PathType -eq "Container" -and -not (Test-Path $Path -PathType Container)) {
         return $false
     } elseif ($PathType -eq "Leaf" -and -not (Test-Path $Path -PathType Leaf)) {
         return $false
     }
-    
+
     # Write access check if requested
     if ($CheckWriteAccess) {
         try {
@@ -250,7 +250,7 @@ function Test-PathValid {
             return $false
         }
     }
-    
+
     return $true
 }
 
@@ -271,7 +271,7 @@ function Get-SystemCapabilities {
         VSCode = Test-ToolAvailability "code"
         WindowsTerminal = Test-ToolAvailability "wt"
     }
-    
+
     # Special WSL detection
     try {
         $wslOutput = wsl --list --quiet 2>$null
@@ -279,7 +279,7 @@ function Get-SystemCapabilities {
     } catch {
         $capabilities.WSL = $false
     }
-    
+
     Write-Log "System capabilities detected: $(($capabilities.GetEnumerator() | Where-Object {$_.Value} | ForEach-Object {$_.Key}) -join ', ')" -Level "INFO"
     return $capabilities
 }
@@ -292,7 +292,7 @@ function Get-SystemInfo {
     $os = Get-CimInstance -ClassName Win32_OperatingSystem
     $cpu = Get-CimInstance -ClassName Win32_Processor
     $memory = Get-CimInstance -ClassName Win32_ComputerSystem
-    
+
     return @{
         OSName = $os.Caption
         OSVersion = $os.Version
@@ -307,9 +307,9 @@ function Install-WingetPackage {
         [string]$PackageId,
         [string]$PackageName
     )
-    
+
     Write-Log "Installing $PackageName..." -Level "INFO"
-    
+
     try {
         winget install --id $PackageId --silent --accept-package-agreements --accept-source-agreements --disable-interactivity | Out-Null
         if ($LASTEXITCODE -eq 0) {
@@ -328,7 +328,7 @@ function Install-WingetPackage {
 
 function Test-WingetPackageInstalled {
     param([string]$PackageId)
-    
+
     try {
         winget list --id $PackageId --exact 2>$null | Out-Null
         return $LASTEXITCODE -eq 0
@@ -342,16 +342,16 @@ function Install-VSCodeExtension {
         [string]$ExtensionId,
         [string]$ExtensionName
     )
-    
+
     Write-Log "Installing VS Code extension: $ExtensionName..." -Level "INFO"
-    
+
     try {
         $codePath = Get-Command code -ErrorAction SilentlyContinue
         if (-not $codePath) {
             Write-Log "VS Code CLI not found in PATH, skipping extension installation" -Level "WARN"
             return $Force
         }
-        
+
         code --install-extension $ExtensionId --force 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Log "$ExtensionName extension installed successfully" -Level "SUCCESS"
@@ -369,17 +369,17 @@ function Install-VSCodeExtension {
 
 function Install-PowerShellProfile {
     Write-Log "Installing PowerShell profile..." -Level "INFO"
-    
+
     try {
         $profilePath = $PROFILE
         $sourceProfile = Join-Path $PSScriptRoot "..\src\powershell\profile.ps1"
-        
+
         if (Test-Path $sourceProfile) {
             $profileDir = Split-Path $profilePath -Parent
             if (-not (Test-Path $profileDir)) {
                 New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
             }
-            
+
             Copy-Item -Path $sourceProfile -Destination $profilePath -Force
             Write-Log "PowerShell profile installed successfully" -Level "SUCCESS"
             return $true
@@ -396,41 +396,41 @@ function Install-PowerShellProfile {
 
 function Install-VSCodeSettings {
     Write-Log "Installing VS Code settings..." -Level "INFO"
-    
+
     try {
         $vscodeSettingsDir = "$env:APPDATA\Code\User"
         $vscodePromptsDir = "$vscodeSettingsDir\prompts"
-        
+
         if (-not (Test-Path $vscodeSettingsDir)) {
             New-Item -ItemType Directory -Path $vscodeSettingsDir -Force | Out-Null
         }
-        
+
         if (-not (Test-Path $vscodePromptsDir)) {
             New-Item -ItemType Directory -Path $vscodePromptsDir -Force | Out-Null
         }
-        
+
         # Install settings.json
         $sourceSettings = Join-Path $PSScriptRoot "..\configs\settings.json"
         $destSettings = Join-Path $vscodeSettingsDir "settings.json"
-        
+
         if (Test-Path $sourceSettings) {
             Copy-Item -Path $sourceSettings -Destination $destSettings -Force
             Write-Log "VS Code settings installed" -Level "SUCCESS"
         } else {
             Write-Log "Source settings.json not found: $sourceSettings" -Level "WARN"
         }
-        
+
         # Install Beast Mode chatmode
         $sourceBeastMode = Join-Path $PSScriptRoot "..\Beast Mode.chatmode.md"
         $destBeastMode = Join-Path $vscodePromptsDir "Beast Mode.chatmode.md"
-        
+
         if (Test-Path $sourceBeastMode) {
             Copy-Item -Path $sourceBeastMode -Destination $destBeastMode -Force
             Write-Log "Beast Mode chatmode installed" -Level "SUCCESS"
         } else {
             Write-Log "Source Beast Mode file not found: $sourceBeastMode" -Level "WARN"
         }
-        
+
         return $true
     } catch {
         $errorMsg = $_.Exception.Message
@@ -442,18 +442,18 @@ function Install-VSCodeSettings {
 function Start-Installation {
     Write-Log "=== $scriptName v$scriptVersion ===" -Level "INFO"
     Write-Log "Starting development environment installation..." -Level "INFO"
-    
+
     # =============================================================================
     # COMPREHENSIVE SYSTEM VALIDATION
     # =============================================================================
     Write-Log "Performing comprehensive system validation..." -Level "INFO"
-    
+
     # Validate PowerShell version
     if (-not (Test-PowerShellVersion)) {
         Write-Error "PowerShell version validation failed"
         if (-not $Force) { exit 1 }
     }
-    
+
     # Validate administrator privileges
     if (-not (Test-AdminPrivileges)) {
         Write-Error "Administrator privileges validation failed"
@@ -461,7 +461,7 @@ function Start-Installation {
     } else {
         Write-Log "Administrator privileges validated" -Level "SUCCESS"
     }
-    
+
     # Test internet connectivity with enhanced validation
     if (-not (Test-InternetConnection)) {
         Write-Log "Internet connection test failed, some installations may fail" -Level "WARN"
@@ -483,7 +483,7 @@ function Start-Installation {
     } else {
         Write-Log "Internet connectivity validated" -Level "SUCCESS"
     }
-    
+
     # Validate required paths and permissions
     $tempPath = $env:TEMP
     if (-not (Test-PathValid $tempPath -PathType "Container" -CheckWriteAccess)) {
@@ -492,7 +492,7 @@ function Start-Installation {
     } else {
         Write-Log "Temporary directory validated: $tempPath" -Level "SUCCESS"
     }
-    
+
     # Get detailed system information
     $sysInfo = Get-SystemInfo
     Write-Log "System Information:" -Level "INFO"
@@ -500,7 +500,7 @@ function Start-Installation {
     Write-Log "  PowerShell: $($sysInfo.PowerShellVersion)" -Level "INFO"
     Write-Log "  RAM: $($sysInfo.TotalRAM) GB" -Level "INFO"
     Write-Log "  CPU: $($sysInfo.CPUName)" -Level "INFO"
-    
+
     # Validate package manager availability
     try {
         $wingetVersion = winget --version 2>$null
@@ -513,7 +513,7 @@ function Start-Installation {
         Write-Error "Winget package manager not available. Please install App Installer from Microsoft Store."
         if (-not $Force) { exit 1 }
     }
-    
+
     # =============================================================================
     # PACKAGE INSTALLATION
     # =============================================================================
@@ -540,17 +540,17 @@ function Start-Installation {
             Write-Log "$($package.Name) already installed" -Level "INFO"
         }
     }
-    
+
     # =============================================================================
     # CONDITIONAL VS CODE EXTENSION INSTALLATION
     # =============================================================================
     if (-not $SkipVSCodeExtensions) {
         Write-Log "Installing VS Code extensions..." -Level "INFO"
         Start-Sleep -Seconds 3
-        
+
         # Get system capabilities for conditional extension installation
         $systemCaps = Get-SystemCapabilities
-        
+
         # Core extensions - always install
         $extensions = @(
             @{Id="GitHub.copilot"; Name="GitHub Copilot"; Required=$true; Condition=$true},
@@ -559,39 +559,39 @@ function Start-Installation {
             @{Id="zainchen.json"; Name="JSON"; Required=$true; Condition=$true},
             @{Id="xyz.local-history"; Name="Local History"; Required=$true; Condition=$true}
         )
-        
+
         # Conditional extensions based on detected capabilities
         if ($systemCaps.PowerShell) {
             $extensions += @{Id="ms-vscode.powershell"; Name="PowerShell"; Required=$false; Condition=$true}
             Write-Log "PowerShell detected - adding PowerShell extension" -Level "INFO"
         }
-        
+
         if ($systemCaps.Python -and -not $SkipPython) {
             $extensions += @{Id="ms-python.python"; Name="Python"; Required=$false; Condition=$true}
             Write-Log "Python detected - adding Python extensions" -Level "INFO"
         }
-        
+
         if ($systemCaps.WSL) {
             $extensions += @{Id="ms-vscode-remote.remote-wsl"; Name="WSL"; Required=$false; Condition=$true}
             Write-Log "WSL detected - adding WSL extension" -Level "INFO"
         }
-        
+
         if ($systemCaps.Docker -and -not $SkipDocker) {
             $extensions += @{Id="ms-vscode-remote.remote-containers"; Name="Dev Containers"; Required=$false; Condition=$true}
             $extensions += @{Id="ms-azuretools.vscode-docker"; Name="Docker"; Required=$false; Condition=$true}
             Write-Log "Docker detected - adding Docker extensions" -Level "INFO"
         }
-        
+
         if ($systemCaps.Git) {
             $extensions += @{Id="eamodio.gitlens"; Name="GitLens"; Required=$false; Condition=$true}
             Write-Log "Git detected - adding GitLens extension" -Level "INFO"
         }
-        
+
         if ($systemCaps.Node) {
             $extensions += @{Id="bradlc.vscode-tailwindcss"; Name="Tailwind CSS IntelliSense"; Required=$false; Condition=$true}
             Write-Log "Node.js detected - adding web development extensions" -Level "INFO"
         }
-        
+
         # Install extensions
         foreach ($extension in $extensions) {
             if ($extension.Condition) {
@@ -630,7 +630,7 @@ function Start-Installation {
     Write-Log "4. Install WSL if not already installed: wsl --install" -Level "INFO"
     Write-Log "" -Level "INFO"
     Write-Log "Log file: $LogPath" -Level "INFO"
-    
+
     if (-not $Silent) {
         Write-Host "`nInstallation completed successfully! Press Enter to exit (auto-continues in 10 seconds)..." -ForegroundColor Green
         $promptJob = Start-Job { Read-Host }

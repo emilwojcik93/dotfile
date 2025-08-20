@@ -6,7 +6,7 @@ A professional Infrastructure as Code (IaC) setup for Windows 11, PowerShell, WS
 
 **Prerequisites:**
 - Windows 11 (PowerShell 5.x included)
-- Internet connection for package downloads  
+- Internet connection for package downloads
 - App Installer (winget) - Available from Microsoft Store
 
 **Winget Package Validation:**
@@ -35,7 +35,7 @@ winget search Git.Git --versions
 
 **Silent Installation (Recommended for automation):**
 ```powershell
-# Completely unattended installation with automatic elevation  
+# Completely unattended installation with automatic elevation
 .\automation\Install-DevEnvironment.ps1 -Silent
 ```
 
@@ -152,7 +152,7 @@ dotfile/
 
 ### VS Code Extensions (silent installation)
 - PowerShell extension
-- Python extension  
+- Python extension
 - WSL extension
 - Dev Containers extension
 - GitHub Copilot & Chat
@@ -184,7 +184,7 @@ Update your environment with the same self-elevating pattern:
 # Update only packages
 .\automation\Update-Environment.ps1 -UpdateExtensions:$false -UpdateConfigs:$false
 
-# Update only configurations  
+# Update only configurations
 .\automation\Update-Environment.ps1 -UpdatePackages:$false -UpdateExtensions:$false
 ```
 
@@ -196,7 +196,7 @@ The environment includes Python 3.12 with virtual environment helpers:
 # Create virtual environment
 venv-create myproject
 
-# Activate virtual environment  
+# Activate virtual environment
 venv-activate myproject
 
 # Use pip shortcut
@@ -210,7 +210,7 @@ Docker Desktop integration with PowerShell shortcuts:
 ```powershell
 # Docker shortcuts
 dps                    # docker ps
-dimg                   # docker images  
+dimg                   # docker images
 drun ubuntu:latest     # docker run
 dexec -it container    # docker exec
 ```
@@ -230,7 +230,7 @@ Beast Mode is integrated into VS Code as a chat mode:
 
 ### Beast Mode Personas
 - **Product Manager**: Requirements gathering and PRDs
-- **Software Architect**: Technical design and implementation guides  
+- **Software Architect**: Technical design and implementation guides
 - **Implementer**: Clean code following IaC principles
 - **Problem Solver**: Debugging and root cause analysis
 - **Reviewer**: Code review and validation

@@ -20,7 +20,7 @@ log() {
     local message="${2:-}"
     local timestamp
     timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-    
+
     case "$level" in
         ERROR)   echo -e "\033[31m[$timestamp] [ERROR] $message\033[0m" >&2 ;;
         WARN)    echo -e "\033[33m[$timestamp] [WARN]  $message\033[0m" >&2 ;;
@@ -44,12 +44,12 @@ validate_command() {
 validate_path() {
     local path="$1"
     local path_type="${2:-any}"  # any, file, directory
-    
+
     if [[ ! -e "$path" ]]; then
         log "ERROR" "Path does not exist: $path"
         return 1
     fi
-    
+
     case "$path_type" in
         file)
             if [[ ! -f "$path" ]]; then
@@ -64,14 +64,14 @@ validate_path() {
             fi
             ;;
     esac
-    
+
     log "INFO" "Path validation passed: $path"
     return 0
 }
 
 validate_writable() {
     local path="$1"
-    
+
     if [[ -w "$path" ]]; then
         log "INFO" "Write access validated: $path"
         return 0
@@ -83,7 +83,7 @@ validate_writable() {
 
 validate_network() {
     local host="${1:-github.com}"
-    
+
     if ping -c 1 -W 5 "$host" >/dev/null 2>&1; then
         log "SUCCESS" "Network connectivity validated: $host"
         return 0
@@ -97,7 +97,7 @@ validate_os() {
     local required_os="$1"  # linux, darwin, etc.
     local current_os
     current_os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-    
+
     if [[ "$current_os" == *"$required_os"* ]]; then
         log "SUCCESS" "Operating system validation passed: $current_os"
         return 0
@@ -120,15 +120,15 @@ validate_user_permission() {
 # Comprehensive system validation
 validate_system() {
     log "INFO" "Starting system validation..."
-    
+
     local validation_errors=0
-    
+
     # Basic system information
     log "INFO" "System: $(uname -a)"
     log "INFO" "User: $(whoami)"
     log "INFO" "Shell: $SHELL"
     log "INFO" "Script: $SCRIPT_NAME v$SCRIPT_VERSION"
-    
+
     # Validate required commands
     local required_commands=("bash" "date" "whoami")
     for cmd in "${required_commands[@]}"; do
@@ -136,23 +136,23 @@ validate_system() {
             ((validation_errors++))
         fi
     done
-    
+
     # Validate paths
     if ! validate_path "$SCRIPT_DIR" "directory"; then
         ((validation_errors++))
     fi
-    
+
     if ! validate_path "/tmp" "directory"; then
         ((validation_errors++))
     fi
-    
+
     if ! validate_writable "/tmp"; then
         ((validation_errors++))
     fi
-    
+
     # Network validation (optional)
     validate_network "github.com" || log "WARN" "Network validation failed, continuing anyway"
-    
+
     if [[ $validation_errors -gt 0 ]]; then
         log "ERROR" "System validation failed with $validation_errors errors"
         return 1
@@ -179,9 +179,9 @@ prompt_with_timeout() {
     local prompt="$1"
     local timeout="${2:-10}"
     local default="${3:-}"
-    
+
     echo -n "$prompt (auto-continues in ${timeout}s): "
-    
+
     if read -t "$timeout" -r response; then
         echo "$response"
     else

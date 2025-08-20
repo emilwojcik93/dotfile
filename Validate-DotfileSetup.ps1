@@ -2,7 +2,7 @@
 
 Write-Host "=== COMPLETE DOTFILE SETUP VALIDATION ===" -ForegroundColor Green
 Write-Host "Device: $env:COMPUTERNAME" -ForegroundColor Cyan
-Write-Host "User: $env:USERNAME" -ForegroundColor Cyan  
+Write-Host "User: $env:USERNAME" -ForegroundColor Cyan
 Write-Host "Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
 Write-Host ""
 
@@ -10,15 +10,15 @@ Write-Host ""
 Write-Host "=== SYSTEM CAPABILITIES ===" -ForegroundColor Yellow
 $capabilities = @{
     VSCode = [bool](Get-Command code -ErrorAction SilentlyContinue)
-    Python = [bool](Get-Command python -ErrorAction SilentlyContinue)  
+    Python = [bool](Get-Command python -ErrorAction SilentlyContinue)
     Git = [bool](Get-Command git -ErrorAction SilentlyContinue)
     Docker = [bool](Get-Command docker -ErrorAction SilentlyContinue)
     PowerShell51 = ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -eq 1)
     PowerShell7 = [bool](Get-Command pwsh -ErrorAction SilentlyContinue)
     WindowsTerminal = [bool](Get-Command wt -ErrorAction SilentlyContinue)
     Winget = [bool](Get-Command winget -ErrorAction SilentlyContinue)
-    WSL = if (Get-Command wsl -ErrorAction SilentlyContinue) { 
-        try { wsl --status 2>$null; $LASTEXITCODE -eq 0 } catch { $false } 
+    WSL = if (Get-Command wsl -ErrorAction SilentlyContinue) {
+        try { wsl --status 2>$null; $LASTEXITCODE -eq 0 } catch { $false }
     } else { $false }
 }
 
@@ -61,11 +61,11 @@ try {
     # PowerShell 7.x with custom profiles can cause code --list-extensions to open GUI
     $extensionCommand = 'powershell.exe -NoProfile -Command "code --list-extensions"'
     $installedExtensions = Invoke-Expression $extensionCommand | Where-Object { $_.Trim() -ne "" }
-    
+
     if ($installedExtensions -and $installedExtensions.Count -gt 0) {
         Write-Host "  Currently Installed ($($installedExtensions.Count) extensions):" -ForegroundColor Green
         $installedExtensions | Sort-Object | ForEach-Object { Write-Host "    ✅ $_" -ForegroundColor Green }
-        
+
         # Check for key extensions
         $keyExtensions = @("xyz.local-history", "github.copilot", "github.copilot-chat", "zainchen.json", "ms-vscode.powershell")
         Write-Host "  Key Extensions Status:" -ForegroundColor Yellow
@@ -120,7 +120,7 @@ Write-Host ""
 Write-Host "=== PACKAGE VALIDATION ===" -ForegroundColor Yellow
 if ($capabilities.Winget) {
     Write-Host "  ✅ Winget available for package management" -ForegroundColor Green
-    
+
     # Test key packages
     $packages = @("Git.Git", "Microsoft.VisualStudioCode", "Python.Python.3.13")
     foreach ($pkg in $packages) {

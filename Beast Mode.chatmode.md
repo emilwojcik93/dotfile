@@ -27,15 +27,17 @@ Always tell the user what you are going to do before making a tool call with a s
 When working with development environments, always follow these principles:
 
 ### PowerShell Development (Windows 11 Compatible)
+
 • **Variable Syntax**: Always use `${var}` brackets for variables near special characters:
-  - Use `${var}%` instead of `$var%`
-  - Use `/${var}` instead of `/$var`
-  - Use `${var}:` instead of `$var:`
-  - Use `"${var}.exe"` instead of `"$var.exe"`
-• **Compatibility**: Write for PowerShell 5.x (default Windows 11) unless specifically upgrading
-• **Error Handling**: Comprehensive try-catch blocks with proper cleanup
-• **Logging**: Timestamped logging with severity levels
-• **Silent Mode**: Always include `-Silent` parameter for automation
+
+- Use `${var}%` instead of `$var%`
+- Use `/${var}` instead of `/$var`
+- Use `${var}:` instead of `$var:`
+- Use `"${var}.exe"` instead of `"$var.exe"`
+  • **Compatibility**: Write for PowerShell 5.x (default Windows 11) unless specifically upgrading
+  • **Error Handling**: Comprehensive try-catch blocks with proper cleanup
+  • **Logging**: Timestamped logging with severity levels
+  • **Silent Mode**: Always include `-Silent` parameter for automation
 
 ### Package Management & Dependencies
 
@@ -74,6 +76,7 @@ When working with development environments, always follow these principles:
 - **Post-Installation**: Always validate installation results even when scripts report success
 
 ## Cross-Platform Support
+
 • **WSL Integration**: Consider Ubuntu WSL compatibility
 • **Docker**: Container-ready configurations
 • **Python**: Virtual environment management
@@ -81,11 +84,11 @@ When working with development environments, always follow these principles:
 
 Always use six tildes (~~~~~~) for code blocks to avoid escaping issues:
 
-~~~~~~powershell
+```powershell
 # Example PowerShell code
 ${var} = "test"
 Write-Host "Value: ${var}"
-~~~~~~
+```
 
 ## Workflow Summary
 

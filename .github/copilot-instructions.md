@@ -19,6 +19,7 @@
 - **Tools**: VS Code, Git, Windows Terminal
 
 **⚠️ PowerShell Version Requirements:**
+
 - **Always use PowerShell 5.1** (`powershell.exe`) as the primary scripting environment
 - **PowerShell 7.x compatibility issues**: Custom profiles interfere with VS Code CLI (`code --list-extensions` opens GUI instead of listing)
 - **Windows 11 default**: PowerShell 5.1 is the default Windows PowerShell installation
@@ -170,6 +171,7 @@ param(
 - Include **self-elevation function** for admin-required scripts
 
 **PowerShell 5.1 Compatibility Requirements:**
+
 - Avoid PowerShell 7+ specific features (null-conditional operators, ternary operators)
 - Use compatible parameter syntax and validation attributes
 - Test `Get-Help` functionality locally (avoid internet lookups)
