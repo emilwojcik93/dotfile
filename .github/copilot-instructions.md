@@ -26,6 +26,18 @@
 - **Readability**: Write self-documenting code with clear variable names and logical structure
 - **Maintainability**: Structure code for future modifications and debugging
 
+### MANDATORY VALIDATION REQUIREMENTS
+
+- **Always Validate**: Every script MUST include comprehensive validation functions
+- **Test-Path Usage**: Use Test-Path cmdlet extensively for file/directory validation
+- **Command Validation**: Use Get-Command to check for required tools before use
+- **Network Validation**: Test connectivity before attempting downloads or API calls
+- **Parameter Validation**: Use ValidateScript, ValidateSet, and ValidateRange attributes
+- **Error Handling**: Implement try/catch blocks with proper cleanup
+- **Logging**: Include timestamped logging with severity levels (INFO, WARN, ERROR, SUCCESS)
+- **Auto-Continue Prompts**: All user prompts must auto-continue/exit after 10 seconds maximum
+- **System Requirements**: Validate OS, PowerShell version, disk space, and permissions
+
 ### Administrative Operations
 
 - **Use gsudo**: For administrative commands when available: `gsudo Install-Module ModuleName`

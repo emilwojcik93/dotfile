@@ -2,17 +2,37 @@
 .SYNOPSIS
     Sets up the development environment for Windows 11 using Infrastructure as Code principles.
 .DESCRIPTION
-    Detailed description of the script's functionality, purpose, and behavior.
-    Include any important prerequisites or dependencies.
+    Installs and configures development tools, VS Code extensions, PowerShell profile, and settings.
+    Uses Infrastructure as Code approach with dynamic asset management and conditional installation.
     Compatible with PowerShell 5.1+ (default Windows PowerShell) and PowerShell 7.x
 
     PROMPT NOTICE:
     Any prompt requiring user input will automatically continue/exit after 10 seconds if no input is provided. This ensures automation and prevents blocking.
+.PARAMETER Silent
+    Run in silent mode without user interaction
+.PARAMETER LogPath
+    Path for log file output
+.PARAMETER SkipVSCodeExtensions
+    Skip VS Code extension installation
+.PARAMETER SkipPowerShellProfile
+    Skip PowerShell profile installation
+.PARAMETER SkipPython
+    Skip Python-related installations
+.PARAMETER SkipDocker
+    Skip Docker Desktop installation
+.PARAMETER Force
+    Continue despite errors
+.EXAMPLE
+    .\Install-DevEnvironment.ps1
+    Run with default settings
+.EXAMPLE
+    .\Install-DevEnvironment.ps1 -Silent -SkipPython
+    Run silently without Python components
+.NOTES
+    Author: Emil Wójcik
+    Version: 1.2.0
+    Requires: PowerShell 5.1+, Administrator privileges
 #>
-
-# Install-DevEnvironment.ps1 - IaC Development Environment Setup
-# Windows 11 PowerShell 5.x Compatible with WinUtil-style Admin Self-Elevation
-# Infrastructure as Code approach with dynamic asset management
 
 [CmdletBinding()]
 param(
@@ -27,7 +47,7 @@ param(
 
 # WinUtil-style Admin Self-Elevation
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Write-Host "Install-DevEnvironment needs to be run as Administrator. Attempting to relaunch..." -ForegroundColor Yellow
+    Write-Host 'Install-DevEnvironment needs to be run as Administrator. Attempting to relaunch...' -ForegroundColor Yellow
     $argList = @()
 
     $PSBoundParameters.GetEnumerator() | ForEach-Object {
@@ -50,6 +70,8 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
         } else {
             Start-Process $processCmd -ArgumentList "-ExecutionPolicy Bypass -NoProfile -Command `"$script`"" -Verb RunAs -Wait
         }
+        Write-Host 'Script relaunched with administrator privileges.' -ForegroundColor Green
+        exit 0
     } catch {
         $errorMsg = $_.Exception.Message
         Write-Error "Failed to elevate privileges: $errorMsg"
@@ -59,7 +81,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 }
 
 # Script metadata
-$scriptVersion = "1.1.0"
+$scriptVersion = "1.2.0"
 $scriptName = "Install-DevEnvironment"
 
 # Initialize logging
@@ -87,7 +109,7 @@ function Write-Log {
     }
 }
 
-function Handle-Error {
+function Write-Error {
     param([string]$ErrorMessage)
     Write-Log "ERROR: $ErrorMessage" -Level "ERROR"
     if (-not $Silent -and -not $Force) {
@@ -96,18 +118,177 @@ function Handle-Error {
     }
 }
 
+# =============================================================================
+# VALIDATION FUNCTIONS - PowerShell Best Practices for Script Validation
+# =============================================================================
+
 function Test-InternetConnection {
+    <#
+    .SYNOPSIS
+        Tests internet connectivity by resolving DNS and attempting connection
+    .DESCRIPTION
+        Uses multiple validation methods to ensure reliable internet connectivity
+    #>
     try {
+        # Test DNS resolution
         [System.Net.Dns]::GetHostAddresses("github.com") | Out-Null
+        
+        # Test HTTP connectivity with timeout
+        $webRequest = [System.Net.WebRequest]::Create("https://github.com")
+        $webRequest.Timeout = 5000
+        $response = $webRequest.GetResponse()
+        $response.Close()
+        
         return $true
     } catch {
+        Write-Log "Internet connectivity test failed: $($_.Exception.Message)" -Level "WARN"
         return $false
     }
 }
 
+function Test-AdminPrivileges {
+    <#
+    .SYNOPSIS
+        Validates if current session has administrator privileges
+    .DESCRIPTION
+        Uses Windows Principal to check for admin rights
+    #>
+    return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Test-PowerShellVersion {
+    <#
+    .SYNOPSIS
+        Validates PowerShell version meets minimum requirements
+    .DESCRIPTION
+        Ensures PowerShell 5.1+ compatibility
+    #>
+    $minVersion = [version]"5.1.0.0"
+    $currentVersion = $PSVersionTable.PSVersion
+    
+    if ($currentVersion -ge $minVersion) {
+        Write-Log "PowerShell version check passed: $currentVersion" -Level "INFO"
+        return $true
+    } else {
+        Write-Log "PowerShell version $currentVersion is below minimum required $minVersion" -Level "ERROR"
+        return $false
+    }
+}
+
+function Test-ToolAvailability {
+    <#
+    .SYNOPSIS
+        Tests if a command/tool is available in the system
+    .DESCRIPTION
+        Uses Get-Command with comprehensive error handling
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ToolName,
+        
+        [Parameter(Mandatory=$false)]
+        [string[]]$AlternativeNames = @()
+    )
+    
+    # Test primary tool name
+    if (Get-Command $ToolName -ErrorAction SilentlyContinue) {
+        return $true
+    }
+    
+    # Test alternative names
+    foreach ($altName in $AlternativeNames) {
+        if (Get-Command $altName -ErrorAction SilentlyContinue) {
+            return $true
+        }
+    }
+    
+    return $false
+}
+
+function Test-PathValid {
+    <#
+    .SYNOPSIS
+        Advanced path validation using Test-Path with enhanced checking
+    .DESCRIPTION
+        Validates paths with type checking, permissions, and accessibility
+    #>
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Path,
+        
+        [Parameter(Mandatory=$false)]
+        [ValidateSet("Any", "Container", "Leaf")]
+        [string]$PathType = "Any",
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$CheckWriteAccess
+    )
+    
+    # Basic path existence check
+    if (-not (Test-Path $Path)) {
+        return $false
+    }
+    
+    # Type-specific validation
+    if ($PathType -eq "Container" -and -not (Test-Path $Path -PathType Container)) {
+        return $false
+    } elseif ($PathType -eq "Leaf" -and -not (Test-Path $Path -PathType Leaf)) {
+        return $false
+    }
+    
+    # Write access check if requested
+    if ($CheckWriteAccess) {
+        try {
+            $testFile = Join-Path $Path "test_write_$(Get-Random).tmp"
+            New-Item -Path $testFile -ItemType File -Force | Out-Null
+            Remove-Item $testFile -Force
+            return $true
+        } catch {
+            Write-Log "Path $Path exists but is not writable" -Level "WARN"
+            return $false
+        }
+    }
+    
+    return $true
+}
+
+function Get-SystemCapabilities {
+    <#
+    .SYNOPSIS
+        Detects system capabilities and available tools
+    .DESCRIPTION
+        Returns a hashtable of system capabilities for conditional installations
+    #>
+    $capabilities = @{
+        PowerShell = Test-ToolAvailability "powershell" @("pwsh")
+        Python = Test-ToolAvailability "python" @("python3", "py")
+        Node = Test-ToolAvailability "node" @("nodejs")
+        Git = Test-ToolAvailability "git"
+        Docker = Test-ToolAvailability "docker"
+        WSL = $false
+        VSCode = Test-ToolAvailability "code"
+        WindowsTerminal = Test-ToolAvailability "wt"
+    }
+    
+    # Special WSL detection
+    try {
+        $wslOutput = wsl --list --quiet 2>$null
+        $capabilities.WSL = ($LASTEXITCODE -eq 0) -and $wslOutput
+    } catch {
+        $capabilities.WSL = $false
+    }
+    
+    Write-Log "System capabilities detected: $(($capabilities.GetEnumerator() | Where-Object {$_.Value} | ForEach-Object {$_.Key}) -join ', ')" -Level "INFO"
+    return $capabilities
+}
+
+# =============================================================================
+# INSTALLATION FUNCTIONS
+# =============================================================================
+
 function Get-SystemInfo {
     $os = Get-CimInstance -ClassName Win32_OperatingSystem
-    $cpu = Get-CimInstance -ClassName Win32_Processor  
+    $cpu = Get-CimInstance -ClassName Win32_Processor
     $memory = Get-CimInstance -ClassName Win32_ComputerSystem
     
     return @{
@@ -128,12 +309,9 @@ function Install-WingetPackage {
     Write-Log "Installing $PackageName..." -Level "INFO"
     
     try {
-        $result = winget install --id $PackageId --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
+        winget install --id $PackageId --silent --accept-package-agreements --accept-source-agreements --disable-interactivity | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Log "$PackageName installed successfully" -Level "SUCCESS"
-            return $true
-        } elseif ($LASTEXITCODE -eq -1978335189) {
-            Write-Log "$PackageName already installed" -Level "INFO"
             return $true
         } else {
             Write-Log "Failed to install $PackageName (Exit code: $LASTEXITCODE)" -Level "WARN"
@@ -141,7 +319,7 @@ function Install-WingetPackage {
         }
     } catch {
         $errorMsg = $_.Exception.Message
-        Handle-Error "Exception installing $PackageName - $errorMsg"
+        Write-Error "Exception installing $PackageName - $errorMsg"
         return $Force
     }
 }
@@ -150,7 +328,7 @@ function Test-WingetPackageInstalled {
     param([string]$PackageId)
     
     try {
-        $result = winget list --id $PackageId --exact 2>$null
+        winget list --id $PackageId --exact 2>$null | Out-Null
         return $LASTEXITCODE -eq 0
     } catch {
         return $false
@@ -172,7 +350,7 @@ function Install-VSCodeExtension {
             return $Force
         }
         
-        $result = code --install-extension $ExtensionId --force 2>$null
+        code --install-extension $ExtensionId --force 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Log "$ExtensionName extension installed successfully" -Level "SUCCESS"
             return $true
@@ -182,7 +360,7 @@ function Install-VSCodeExtension {
         }
     } catch {
         $errorMsg = $_.Exception.Message
-        Handle-Error "Exception installing $ExtensionName extension - $errorMsg"
+        Write-Error "Exception installing $ExtensionName extension - $errorMsg"
         return $Force
     }
 }
@@ -192,24 +370,24 @@ function Install-PowerShellProfile {
     
     try {
         $profilePath = $PROFILE
-        $profileDir = Split-Path $profilePath -Parent
-        
-        if (-not (Test-Path $profileDir)) {
-            New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
-        }
-        
         $sourceProfile = Join-Path $PSScriptRoot "..\src\powershell\profile.ps1"
+        
         if (Test-Path $sourceProfile) {
+            $profileDir = Split-Path $profilePath -Parent
+            if (-not (Test-Path $profileDir)) {
+                New-Item -ItemType Directory -Path $profileDir -Force | Out-Null
+            }
+            
             Copy-Item -Path $sourceProfile -Destination $profilePath -Force
             Write-Log "PowerShell profile installed successfully" -Level "SUCCESS"
             return $true
         } else {
-            Write-Log "Source profile not found: $sourceProfile" -Level "WARN"
+            Write-Log "Source PowerShell profile not found: $sourceProfile" -Level "WARN"
             return $Force
         }
     } catch {
         $errorMsg = $_.Exception.Message
-        Handle-Error "Exception installing PowerShell profile - $errorMsg"
+        Write-Error "Exception installing PowerShell profile - $errorMsg"
         return $Force
     }
 }
@@ -229,26 +407,32 @@ function Install-VSCodeSettings {
             New-Item -ItemType Directory -Path $vscodePromptsDir -Force | Out-Null
         }
         
+        # Install settings.json
         $sourceSettings = Join-Path $PSScriptRoot "..\configs\settings.json"
         $destSettings = Join-Path $vscodeSettingsDir "settings.json"
         
         if (Test-Path $sourceSettings) {
             Copy-Item -Path $sourceSettings -Destination $destSettings -Force
-            Write-Log "VS Code settings installed successfully" -Level "SUCCESS"
+            Write-Log "VS Code settings installed" -Level "SUCCESS"
+        } else {
+            Write-Log "Source settings.json not found: $sourceSettings" -Level "WARN"
         }
         
+        # Install Beast Mode chatmode
         $sourceBeastMode = Join-Path $PSScriptRoot "..\Beast Mode.chatmode.md"
         $destBeastMode = Join-Path $vscodePromptsDir "Beast Mode.chatmode.md"
         
         if (Test-Path $sourceBeastMode) {
             Copy-Item -Path $sourceBeastMode -Destination $destBeastMode -Force
-            Write-Log "Beast Mode chatmode installed successfully" -Level "SUCCESS"
+            Write-Log "Beast Mode chatmode installed" -Level "SUCCESS"
+        } else {
+            Write-Log "Source Beast Mode file not found: $sourceBeastMode" -Level "WARN"
         }
         
         return $true
     } catch {
         $errorMsg = $_.Exception.Message
-        Handle-Error "Exception installing VS Code settings - $errorMsg"
+        Write-Error "Exception installing VS Code settings - $errorMsg"
         return $Force
     }
 }
@@ -257,43 +441,96 @@ function Start-Installation {
     Write-Log "=== $scriptName v$scriptVersion ===" -Level "INFO"
     Write-Log "Starting development environment installation..." -Level "INFO"
     
-    Write-Log "Performing system validation..." -Level "INFO"
+    # =============================================================================
+    # COMPREHENSIVE SYSTEM VALIDATION
+    # =============================================================================
+    Write-Log "Performing comprehensive system validation..." -Level "INFO"
     
-    if (-not (Test-InternetConnection)) {
-        Write-Log "Internet connection test failed, continuing anyway..." -Level "WARN"
-    } else {
-        Write-Log "Internet connection verified" -Level "SUCCESS"
-    }
-    
-    $sysInfo = Get-SystemInfo
-    Write-Log "System: $($sysInfo.OSName) $($sysInfo.OSVersion)" -Level "INFO"
-    Write-Log "PowerShell: $($sysInfo.PowerShellVersion)" -Level "INFO"
-    Write-Log "RAM: $($sysInfo.TotalRAM) GB" -Level "INFO"
-    
-    try {
-        winget --version | Out-Null
-        Write-Log "Winget package manager available" -Level "SUCCESS"
-    } catch {
-        Handle-Error "Winget package manager not available. Please install App Installer from Microsoft Store."
+    # Validate PowerShell version
+    if (-not (Test-PowerShellVersion)) {
+        Write-Error "PowerShell version validation failed"
         if (-not $Force) { exit 1 }
     }
     
-    Write-Log "Installing core applications..." -Level "INFO"
+    # Validate administrator privileges
+    if (-not (Test-AdminPrivileges)) {
+        Write-Error "Administrator privileges validation failed"
+        if (-not $Force) { exit 1 }
+    } else {
+        Write-Log "Administrator privileges validated" -Level "SUCCESS"
+    }
     
+    # Test internet connectivity with enhanced validation
+    if (-not (Test-InternetConnection)) {
+        Write-Log "Internet connection test failed, some installations may fail" -Level "WARN"
+        if (-not $Force -and -not $Silent) {
+            $promptJob = Start-Job { Read-Host "Continue without internet connectivity? (y/N)" }
+            $jobResult = Wait-Job $promptJob -Timeout 10
+            if ($null -eq $jobResult) {
+                Write-Host "No input detected, continuing automatically..." -ForegroundColor Yellow
+                Stop-Job $promptJob | Out-Null
+            } else {
+                $response = Receive-Job $promptJob
+                if ($response -ne "y" -and $response -ne "Y") {
+                    Remove-Job $promptJob | Out-Null
+                    exit 1
+                }
+            }
+            Remove-Job $promptJob | Out-Null
+        }
+    } else {
+        Write-Log "Internet connectivity validated" -Level "SUCCESS"
+    }
+    
+    # Validate required paths and permissions
+    $tempPath = $env:TEMP
+    if (-not (Test-PathValid $tempPath -PathType "Container" -CheckWriteAccess)) {
+        Write-Error "Temporary directory validation failed: $tempPath"
+        if (-not $Force) { exit 1 }
+    } else {
+        Write-Log "Temporary directory validated: $tempPath" -Level "SUCCESS"
+    }
+    
+    # Get detailed system information
+    $sysInfo = Get-SystemInfo
+    Write-Log "System Information:" -Level "INFO"
+    Write-Log "  OS: $($sysInfo.OSName) $($sysInfo.OSVersion)" -Level "INFO"
+    Write-Log "  PowerShell: $($sysInfo.PowerShellVersion)" -Level "INFO"
+    Write-Log "  RAM: $($sysInfo.TotalRAM) GB" -Level "INFO"
+    Write-Log "  CPU: $($sysInfo.CPUName)" -Level "INFO"
+    
+    # Validate package manager availability
+    try {
+        $wingetVersion = winget --version 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Log "Winget package manager validated: $wingetVersion" -Level "SUCCESS"
+        } else {
+            throw "Winget validation failed"
+        }
+    } catch {
+        Write-Error "Winget package manager not available. Please install App Installer from Microsoft Store."
+        if (-not $Force) { exit 1 }
+    }
+    
+    # =============================================================================
+    # PACKAGE INSTALLATION
+    # =============================================================================
+    Write-Log "Installing core applications..." -Level "INFO"
+
     $packages = @(
         @{Id="Microsoft.VisualStudioCode"; Name="Visual Studio Code"},
         @{Id="Git.Git"; Name="Git"},
         @{Id="Microsoft.PowerShell"; Name="PowerShell 7+"}
     )
-    
+
     if (-not $SkipPython) {
         $packages += @{Id="Python.Python.3.12"; Name="Python 3.12"}
     }
-    
+
     if (-not $SkipDocker) {
         $packages += @{Id="Docker.DockerDesktop"; Name="Docker Desktop"}
     }
-    
+
     foreach ($package in $packages) {
         if (-not (Test-WingetPackageInstalled $package.Id)) {
             Install-WingetPackage $package.Id $package.Name | Out-Null
@@ -302,41 +539,84 @@ function Start-Installation {
         }
     }
     
+    # =============================================================================
+    # CONDITIONAL VS CODE EXTENSION INSTALLATION
+    # =============================================================================
     if (-not $SkipVSCodeExtensions) {
         Write-Log "Installing VS Code extensions..." -Level "INFO"
         Start-Sleep -Seconds 3
         
+        # Get system capabilities for conditional extension installation
+        $systemCaps = Get-SystemCapabilities
+        
+        # Core extensions - always install
         $extensions = @(
-            @{Id="ms-vscode.powershell"; Name="PowerShell"},
-            @{Id="ms-python.python"; Name="Python"},
-            @{Id="ms-vscode-remote.remote-wsl"; Name="WSL"},
-            @{Id="ms-vscode-remote.remote-containers"; Name="Dev Containers"},
-            @{Id="GitHub.copilot"; Name="GitHub Copilot"},
-            @{Id="GitHub.copilot-chat"; Name="GitHub Copilot Chat"},
-            @{Id="bradlc.vscode-tailwindcss"; Name="Tailwind CSS IntelliSense"},
-            @{Id="esbenp.prettier-vscode"; Name="Prettier"},
-                @{Id="zainchen.json"; Name="JSON"}
+            @{Id="GitHub.copilot"; Name="GitHub Copilot"; Required=$true; Condition=$true},
+            @{Id="GitHub.copilot-chat"; Name="GitHub Copilot Chat"; Required=$true; Condition=$true},
+            @{Id="esbenp.prettier-vscode"; Name="Prettier - Code formatter"; Required=$true; Condition=$true},
+            @{Id="zainchen.json"; Name="JSON"; Required=$true; Condition=$true}
         )
         
+        # Conditional extensions based on detected capabilities
+        if ($systemCaps.PowerShell) {
+            $extensions += @{Id="ms-vscode.powershell"; Name="PowerShell"; Required=$false; Condition=$true}
+            Write-Log "PowerShell detected - adding PowerShell extension" -Level "INFO"
+        }
+        
+        if ($systemCaps.Python -and -not $SkipPython) {
+            $extensions += @{Id="ms-python.python"; Name="Python"; Required=$false; Condition=$true}
+            Write-Log "Python detected - adding Python extensions" -Level "INFO"
+        }
+        
+        if ($systemCaps.WSL) {
+            $extensions += @{Id="ms-vscode-remote.remote-wsl"; Name="WSL"; Required=$false; Condition=$true}
+            Write-Log "WSL detected - adding WSL extension" -Level "INFO"
+        }
+        
+        if ($systemCaps.Docker -and -not $SkipDocker) {
+            $extensions += @{Id="ms-vscode-remote.remote-containers"; Name="Dev Containers"; Required=$false; Condition=$true}
+            $extensions += @{Id="ms-azuretools.vscode-docker"; Name="Docker"; Required=$false; Condition=$true}
+            Write-Log "Docker detected - adding Docker extensions" -Level "INFO"
+        }
+        
+        if ($systemCaps.Git) {
+            $extensions += @{Id="eamodio.gitlens"; Name="GitLens"; Required=$false; Condition=$true}
+            Write-Log "Git detected - adding GitLens extension" -Level "INFO"
+        }
+        
+        if ($systemCaps.Node) {
+            $extensions += @{Id="bradlc.vscode-tailwindcss"; Name="Tailwind CSS IntelliSense"; Required=$false; Condition=$true}
+            Write-Log "Node.js detected - adding web development extensions" -Level "INFO"
+        }
+        
+        # Install extensions
         foreach ($extension in $extensions) {
-            Install-VSCodeExtension $extension.Id $extension.Name | Out-Null
+            if ($extension.Condition) {
+                $result = Install-VSCodeExtension $extension.Id $extension.Name
+                if (-not $result -and $extension.Required) {
+                    Write-Log "Required extension $($extension.Name) failed to install" -Level "ERROR"
+                    if (-not $Force) {
+                        Write-Error "Required VS Code extension installation failed"
+                    }
+                }
+            }
         }
     }
-    
+
     if (-not $SkipPowerShellProfile) {
         Install-PowerShellProfile | Out-Null
     }
-    
+
     Install-VSCodeSettings | Out-Null
-    
+
     Write-Log "Checking WSL status..." -Level "INFO"
-    try {
-        wsl --version 2>$null | Out-Null
-        Write-Log "WSL already installed" -Level "SUCCESS"
-    } catch {
-        Write-Log "WSL not installed. Run 'wsl --install' to install Ubuntu WSL" -Level "WARN"
+    $wslCapability = Get-SystemCapabilities
+    if ($wslCapability.WSL) {
+        Write-Log "WSL already installed and configured" -Level "SUCCESS"
+    } else {
+        Write-Log "WSL not detected. Install with: wsl --install" -Level "INFO"
     }
-    
+
     Write-Log "=== Installation Complete ===" -Level "SUCCESS"
     Write-Log "Development environment setup finished!" -Level "SUCCESS"
     Write-Log "" -Level "INFO"
@@ -352,7 +632,7 @@ function Start-Installation {
         Write-Host "`nInstallation completed successfully! Press Enter to exit (auto-continues in 10 seconds)..." -ForegroundColor Green
         $promptJob = Start-Job { Read-Host }
         $jobResult = Wait-Job $promptJob -Timeout 10
-        if ($jobResult -eq $null) {
+        if ($null -eq $jobResult) {
             Write-Host "No input detected, continuing automatically..." -ForegroundColor Yellow
             Stop-Job $promptJob | Out-Null
         } else {
@@ -368,8 +648,7 @@ try {
     $errorMsg = $_.Exception.Message
     Write-Log "Unexpected error during installation: $errorMsg" -Level "ERROR"
     if (-not $Force) {
+        Write-Log "Use -Force parameter to continue despite errors" -Level "WARN"
         exit 1
     }
 }
-
-exit 0
