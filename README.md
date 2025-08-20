@@ -1,237 +1,259 @@
-# Personal Dotfiles Repository
+# Modern Development Environment - IaC Edition
 
-This repository contains my personal development environment configuration and instructions for AI assistants (GitHub Copilot, Cline, Cursor).
+A professional Infrastructure as Code (IaC) setup for Windows 11, PowerShell, WSL, Python, and Docker development environments with Beast Mode 3.1 Enhanced integration.
 
-## Environment
-- **OS**: Windows 11 with WSL Ubuntu
-- **Shells**: PowerShell 7+, Bash (WSL)
-- **Languages**: Python 3.12+, PowerShell
-- **Editors**: VS Code with AI assistants
+## 🚀 Quick Start
 
-## Features
+**Prerequisites:**
+- Windows 11 with Administrator access
+- Internet connection for package downloads
+- App Installer (winget) - Available from Microsoft Store
 
-### Development Environment
-- **Windows 11 Optimized**: Native Windows development with WSL integration
-- **Font Configuration**: JetBrainsMono Nerd Font with ligatures and icon support
-- **Cross-Platform**: Seamless Windows/WSL development workflow
-- **Performance Tuned**: Optimized settings for large repositories and remote development
+**One-Command Installation:**
+```powershell
+# Run as Administrator
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\automation\Install-DevEnvironment.ps1
+```
 
-### Coding Standards
-- **UTF-8/ASCII Enforcement**: Scripts use only UTF-8/ASCII characters (no Unicode symbols)
-- **Automatic Validation**: Syntax checking for PowerShell, Python, JSON, YAML files
-- **Consistent Formatting**: Standardized code formatting across all languages
-- **Smart Suggestions**: Intelligent autocomplete and code suggestions
+## 🏗️ Infrastructure as Code Architecture
 
-### AI Assistant Integration
-- **GitHub Copilot**: Advanced code completion and chat features
-- **Cline/Cursor**: Alternative AI assistants with custom instructions
-- **Workspace Instructions**: Automatic instruction loading from `.github/copilot-instructions.md`
-- **Context Awareness**: AI assistants understand project structure and coding standards
+This repository follows modern IaC principles:
 
-### Extension Ecosystem
-- **PowerShell**: Advanced PowerShell development with PSScriptAnalyzer
-- **Python**: Complete Python development stack with linting and formatting
-- **Remote Development**: WSL, SSH, and container development support
-- **Security**: Vulnerability scanning with Snyk integration
-- **Git Integration**: Enhanced Git workflow with GitLens and Pull Request management
+### 📁 Repository Structure
+```
+dotfile/
+├── src/                    # Source code and scripts
+│   ├── powershell/        # PowerShell modules and profiles
+│   └── python/            # Python utilities and helpers
+├── configs/               # Configuration files
+│   ├── vscode/           # VS Code settings and extensions
+│   ├── git/              # Git configuration
+│   └── ssh/              # SSH keys and config
+├── automation/           # Installation and deployment scripts
+│   ├── Install-DevEnvironment.ps1
+│   └── Update-Environment.ps1
+├── docs/                 # Documentation and guides
+│   ├── setup/            # Setup instructions
+│   └── troubleshooting/  # Common issues and solutions
+└── .github/              # GitHub-specific files
+    └── workflows/        # GitHub Actions (future)
+```
+
+### 🎯 Core Principles
+
+1. **No Static Assets**: All dependencies downloaded from official sources
+2. **Dynamic Downloads**: Packages fetched via winget and official repositories
+3. **Version Control**: Only source code, scripts, and configurations stored
+4. **Cross-Platform**: Windows 11, WSL, Docker, and Python support
+5. **Professional Quality**: Enterprise-grade automation and error handling
+
+## 🛠️ Features
+
+### Beast Mode 3.1 Enhanced
+- **Persona-Based Workflow**: Product Manager, Architect, Implementer, Problem Solver, Reviewer personas
+- **Enhanced Internet Research**: Multi-engine search with Bing/DuckDuckGo fallbacks
+- **Live Documentation Fetching**: Always uses latest official documentation
+- **shadcn/ui Integration**: Automatic component documentation lookup
+- **IaC Guidelines**: Proper PowerShell 5.x syntax with `${var}` notation
 
 ### Development Tools
-- **PowerShell Profile**: Custom functions for validation and formatting (`validate`, `format`, `utf8`)
-- **Python Environment**: Pre-configured with Black, Pylint, MyPy, Flake8
-- **WSL Integration**: Ubuntu development environment with development tools
-- **VS Code Tasks**: Automated validation and formatting workflows
-- **Hex Editor**: Binary file viewing and editing capabilities
+- **VS Code**: Latest version with essential extensions
+- **PowerShell 7+**: Modern PowerShell with backwards compatibility
+- **Python 3.12**: Latest stable Python with pip management
+- **Docker Desktop**: Container development support
+- **Git**: Version control with enhanced configuration
+- **WSL Integration**: Ubuntu subsystem support
 
-## Repository Structure
+### Enhanced PowerShell Profile
+- **Modern Prompt**: Git branch display and colored output
+- **Navigation Shortcuts**: `ll`, `la`, `..`, `...` aliases
+- **Git Shortcuts**: `gs`, `gp`, `gpl`, `gc`, `ga` commands
+- **Development Helpers**: `py`, `pip`, `code` shortcuts
+- **System Information**: `sysinfo` command for system details
+- **Beast Mode Helper**: `beast` command for configuration info
 
-```
-dotfiles/
-├── .github/
-│   └── copilot-instructions.md     # AI assistant coding instructions
-├── .vscode/
-│   ├── settings.json               # VS Code settings
-│   ├── extensions.json             # Recommended extensions
-│   └── tasks.json                  # Build and validation tasks
-├── powershell/
-│   ├── profile.ps1                 # PowerShell profile
-│   └── scripts/
-│       └── script-template.ps1     # PowerShell script template
-├── python/
-│   ├── .python-version             # Python version
-│   ├── requirements.txt            # Python dependencies
-│   └── script-template.py          # Python script template
-├── wsl/
-│   └── .bashrc                     # WSL Bash configuration
-├── setup.ps1                      # Initial environment setup
-├── CLOUD_SETTINGS.md               # Cloud configuration guide
-└── README.md                       # This file
-```
+## 🔧 Installation Options
 
-## Quick Setup
-
-### Prerequisites
-- Windows 11 with PowerShell 7+
-- Windows Package Manager (winget)
-- Administrator privileges for setup
-
-### Installation
-
-#### 1. Install Dependencies with Winget
+### Full Installation (Recommended)
 ```powershell
-# Core development tools
-winget install Microsoft.Git
-winget install Microsoft.VisualStudioCode
-winget install Microsoft.PowerShell
-winget install Python.Python.3.12
-
-# Essential fonts
-winget install JetBrains.JetBrainsMono
-# Alternative: Cascadia Code PL (included with Windows Terminal)
-winget install Microsoft.WindowsTerminal
-
-# Optional but recommended
-winget install Microsoft.WindowsSubsystemForLinux
-winget install Canonical.Ubuntu.2404
-
-# Development utilities
-winget install gsudo.gsudo  # For administrative operations
-winget install chocolatey.chocolatey  # Alternative package manager
+.\automation\Install-DevEnvironment.ps1
 ```
 
-#### 2. Clone and Setup Repository
+### Silent Installation
 ```powershell
-# Clone repository
-git clone https://github.com/your-username/dotfiles.git $env:USERPROFILE\GitHub\dotfile
-cd $env:USERPROFILE\GitHub\dotfile
-
-# Get help (works offline)
-Get-Help .\setup.ps1 -Detailed
-
-# Run setup as Administrator
-gsudo .\setup.ps1
-
-# Without gsudo:
-# Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -File .\setup.ps1" -Verb RunAs
+.\automation\Install-DevEnvironment.ps1 -Silent
 ```
 
-#### 3. Post-Installation
+### Custom Installation
 ```powershell
-# Restart PowerShell to load new profile
-# Restart VS Code to apply settings
+# Skip specific components
+.\automation\Install-DevEnvironment.ps1 -SkipPython -SkipDocker
 
-# Validate installation
-.\validate-all.ps1
-
-# Configure Git (replace with your details)
-git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
+# Custom log location
+.\automation\Install-DevEnvironment.ps1 -LogPath "C:\Logs\DevInstall.log"
 ```
 
-### WSL Setup (Optional)
+## 📋 What Gets Installed
+
+### Core Applications (via winget)
+- Visual Studio Code
+- Git for Windows
+- PowerShell 7+
+- Python 3.12 (optional)
+- Docker Desktop (optional)
+
+### VS Code Extensions
+- PowerShell extension
+- Python extension  
+- WSL extension
+- Dev Containers extension
+- GitHub Copilot & Chat
+- Tailwind CSS IntelliSense
+- Prettier code formatter
+
+### Configuration Files
+- Enhanced PowerShell profile with shortcuts
+- VS Code settings with Beast Mode integration
+- Beast Mode 3.1 Enhanced chatmode file
+- Git configuration templates
+
+## 🐍 Python Development
+
+The environment includes Python 3.12 with virtual environment helpers:
+
 ```powershell
-# Install Ubuntu in WSL
-wsl --install -d Ubuntu
+# Create virtual environment
+venv-create myproject
 
-# After Ubuntu installation, run:
-wsl cp $env:USERPROFILE/GitHub/dotfile/wsl/.bashrc ~/.bashrc
-wsl sudo apt update
-wsl sudo apt install -y python3-pip yamllint git curl
-wsl pip3 install black pylint mypy
+# Activate virtual environment  
+venv-activate myproject
+
+# Use pip shortcut
+pip install requests
 ```
 
-## Features
+## 🐳 Docker Integration
 
-### Coding Standards
-- **UTF-8/ASCII enforcement** for scripts (no Unicode symbols)
-- **Automatic syntax validation** for PowerShell, Python, JSON, YAML
-- **Consistent formatting** rules across all file types
-- **Cross-platform compatibility** (Windows/WSL)
+Docker Desktop integration with PowerShell shortcuts:
 
-### AI Assistant Integration
-- **GitHub Copilot**: Automatic instruction loading from `.github/copilot-instructions.md`
-- **Cline/Cursor**: Workspace-specific coding standards
-- **Enterprise-grade** development practices
-- **Security** and performance guidelines
+```powershell
+# Docker shortcuts
+dps                    # docker ps
+dimg                   # docker images  
+drun ubuntu:latest     # docker run
+dexec -it container    # docker exec
+```
 
-### Development Tools
-- **PowerShell Profile**: Custom functions for validation and formatting
-- **Python Environment**: Pre-configured with linting and formatting tools
-- **WSL Integration**: Ubuntu development environment
-- **VS Code Tasks**: Automated validation and formatting
+## 🔧 Beast Mode 3.1 Enhanced
 
-## Usage
+Beast Mode is integrated into VS Code as a chat mode:
 
-### Available VS Code Tasks
-- **Validate All Files**: Check syntax of all scripts
-- **Setup Environment**: Run initial configuration
-- Press `Ctrl+Shift+P` → "Tasks: Run Task" to access
+1. **Location**: `%APPDATA%\Code\User\prompts\Beast Mode.chatmode.md`
+2. **Access**: VS Code → Chat sidebar → Agent dropdown → "Beast Mode"
+3. **Features**:
+   - Persona-based development workflow
+   - Enhanced internet research with live fetching
+   - Infrastructure as Code principles
+   - PowerShell 5.x compatibility
+   - shadcn/ui documentation integration
 
-### PowerShell Commands
-- `validate`: Validate all script files
-- `format`: Format PowerShell scripts
-- `utf8`: Convert files to UTF-8 encoding
+### Beast Mode Personas
+- **Product Manager**: Requirements gathering and PRDs
+- **Software Architect**: Technical design and implementation guides  
+- **Implementer**: Clean code following IaC principles
+- **Problem Solver**: Debugging and root cause analysis
+- **Reviewer**: Code review and validation
 
-### WSL Commands
-- `validate_python`: Check Python syntax
-- `validate_json`: Validate JSON files
-- `validate_yaml`: Check YAML syntax
-- `format_python`: Format Python code with Black
+## 🖥️ PowerShell 5.x Compatibility
 
-## Cloud Settings
+All scripts use proper Windows 11 PowerShell 5.x syntax:
 
-For cloud-based development (GitHub Codespaces, GitPod, VS Code Online):
-- See `CLOUD_SETTINGS.md` for detailed configuration
-- AI instructions are automatically loaded
-- Settings sync enabled by default
+- **Variable Syntax**: `${var}:` instead of `$var:`
+- **Special Characters**: `${var}%` instead of `$var%`
+- **Path Handling**: `"${var}.exe"` instead of `"$var.exe"`
+- **UTF-8/ASCII Only**: No Unicode characters in source files
 
-## File Templates
+## 🔍 System Information
 
-### PowerShell Script Template
-Use `powershell/scripts/script-template.ps1` as a starting point for new PowerShell scripts.
+Get comprehensive system details:
 
-### Python Script Template
-Use `python/script-template.py` as a starting point for new Python scripts.
+```powershell
+sysinfo
+```
 
-## Validation and Formatting
+Shows OS version, CPU, RAM, PowerShell version, WSL status, and Docker availability.
 
-All scripts are automatically validated for:
-- **Syntax correctness**
-- **UTF-8 encoding**
-- **Consistent formatting**
-- **Best practices compliance**
+## 📱 WSL Integration
 
-## Contributing
+The environment supports Ubuntu WSL:
 
-1. Follow the coding standards in `.github/copilot-instructions.md`
-2. Validate changes with `.\validate-all.ps1`
-3. Test on both Windows and WSL
-4. Update documentation as needed
+```powershell
+# Install WSL if not present
+wsl --install
 
-## Troubleshooting
+# Access Ubuntu
+wsl
+```
+
+VS Code includes WSL extension for seamless development across Windows and Linux.
+
+## 🚨 Troubleshooting
 
 ### Common Issues
-- **Scripts not running**: Check execution policy with `Get-ExecutionPolicy`
-- **Encoding problems**: Use `utf8` command to fix file encoding
-- **VS Code not loading settings**: Restart VS Code and check Settings Sync
-- **Get-Help searching online**: PowerShell 5.1 may search online for help even with comment-based help present. This is a known limitation. Use `.\setup.ps1 -?` or view script comments directly.
 
-### PowerShell Help System
-All scripts include comprehensive comment-based help that works offline with PowerShell 5.1+.
+**Execution Policy Error:**
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
 
-**Usage**:
-- `Get-Help .\setup.ps1` - View help offline ✅
-- `Get-Help .\setup.ps1 -Detailed` - Detailed help information
-- `Get-Help .\setup.ps1 -Examples` - Usage examples
+**Winget Not Found:**
+- Install "App Installer" from Microsoft Store
+- Restart PowerShell
 
-**All scripts now support offline help**: setup.ps1, profile.ps1, script-template.ps1
+**Administrator Required:**
+- Right-click PowerShell → "Run as Administrator"
 
-The repository is now clean and contains only essential files for cloud/dev environment setup.
+**VS Code Extensions Not Installing:**
+- Ensure VS Code is installed first
+- Check internet connection
+- Run: `code --version`
 
-### Getting Help
-- Run validation tasks to identify issues
-- Check log files in `$env:TEMP`
-- Review AI assistant instructions for guidance
+### Log Files
+
+Installation logs are saved to `%TEMP%\DevEnvInstall.log` by default.
+
+## 🔄 Updates
+
+Update the environment:
+
+```powershell
+# Future: Update script
+.\automation\Update-Environment.ps1
+```
+
+## 📝 Contributing
+
+1. Follow IaC principles - no static assets
+2. Use PowerShell 5.x compatible syntax
+3. Test on clean Windows 11 systems
+4. Update documentation for changes
+5. Maintain UTF-8/ASCII character compliance
+
+## 📄 License
+
+MIT License - Feel free to adapt for your development needs.
+
+## 🎯 Next Steps After Installation
+
+1. **Restart Terminal**: Launch new PowerShell window
+2. **Test Profile**: Type `beast` to see Beast Mode info
+3. **Open VS Code**: Launch and check extensions loaded
+4. **Configure Git**: Set up your Git user details
+5. **Install WSL**: Run `wsl --install` if needed
+6. **Test Python**: Create and activate virtual environment
+7. **Test Docker**: Verify Docker Desktop is running
 
 ---
 
-**Note**: This repository is designed for enterprise development environments with focus on code quality, security, and cross-platform compatibility.
+**Beast Mode 3.1 Enhanced - IaC Edition**: Modern development environment with autonomous AI assistance, professional tooling, and Infrastructure as Code principles.

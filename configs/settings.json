@@ -1,0 +1,183 @@
+{
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "editor.detectIndentation": false,
+  "editor.trimAutoWhitespace": true,
+  "editor.tabCompletion": "on",
+  "editor.suggestSelection": "first",
+  "editor.acceptSuggestionOnCommitCharacter": false,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
+  "editor.minimap.enabled": true,
+  "editor.cursorBlinking": "smooth",
+  "editor.smoothScrolling": true,
+  "editor.fontFamily": "'JetBrainsMono Nerd Font', 'Cascadia Code PL', 'Fira Code', 'Consolas', monospace",
+  "editor.fontSize": 14,
+  "editor.fontLigatures": true,
+  "editor.fontWeight": "400",
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font', 'Cascadia Code PL', 'Consolas', monospace",
+  "terminal.integrated.fontSize": 14,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.defaultLanguage": "powershell",
+  "powershell.codeFormatting.preset": "OTBS",
+  "powershell.codeFormatting.openBraceOnSameLine": true,
+  "powershell.codeFormatting.newLineAfterOpenBrace": true,
+  "powershell.codeFormatting.newLineAfterCloseBrace": true,
+  "powershell.codeFormatting.pipelineIndentationStyle": "IncreaseIndentationAfterEveryPipeline",
+  "powershell.codeFormatting.trimWhitespaceAroundPipe": true,
+  "powershell.codeFormatting.useConstantStrings": true,
+  "powershell.codeFormatting.useCorrectCasing": true,
+  "powershell.scriptAnalysis.enable": true,
+  "powershell.scriptAnalysis.settingsPath": "PSScriptAnalyzerSettings.psd1",
+  "powershell.integratedConsole.focusConsoleOnExecute": false,
+  "powershell.buttons.showPanelMovementButtons": true,
+  "powershell.codeFolding.showLastLine": false,
+  "python.defaultInterpreterPath": "python",
+  "python.formatting.autopep8Args": [
+    "--max-line-length",
+    "120"
+  ],
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.lintOnSave": true,
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.autoSearchPaths": true,
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yml]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[powershell]": {
+    "editor.defaultFormatter": "ms-vscode.powershell"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[markdown]": {
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [],
+      "icon": "terminal-cmd"
+    },
+    "WSL Ubuntu": {
+      "path": "wsl.exe",
+      "args": [
+        "-d",
+        "Ubuntu"
+      ],
+      "icon": "terminal-ubuntu"
+    },
+    "Git Bash": {
+      "source": "Git Bash",
+      "icon": "terminal-bash"
+    }
+  },
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.rightClickBehavior": "paste",
+  "git.autofetch": true,
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.replaceTagsWhenPull": true,
+  "git.ignoreRebaseWarning": true,
+  "githubPullRequests.pullBranch": "never",
+  "security.workspace.trust.untrustedFiles": "prompt",
+  "security.workspace.trust.banner": "always",
+  "security.allowedUNCHosts": [
+    "wsl.localhost"
+  ],
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": true,
+    "markdown": true,
+    "powershell": true,
+    "python": true
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.advanced.debug.useElectronFetcher": false,
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "chat.tools.autoApprove": true,
+  "chat.editor.wordWrap": "on",
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true
+  },
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmPasteNative": false,
+  "workbench.editor.empty.hint": "hidden",
+  "workbench.editorAssociations": {
+    "*.bin": "hexEditor.hexedit",
+    "*.exe": "hexEditor.hexedit",
+    "*.hex": "hexEditor.hexedit"
+  },
+  "workbench.colorTheme": "Default Dark+",
+  "workbench.iconTheme": "vs-seti",
+  "debug.openDebug": "neverOpen",
+  "hexeditor.columnWidth": 32,
+  "hexeditor.showDecodedText": true,
+  "hexeditor.defaultEndianness": "little",
+  "hexeditor.inspectorType": "aside",
+  "prettier.resolveGlobalModules": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "remote.SSH.remotePlatform": {},
+  "files.associations": {
+    "*.ps1": "powershell",
+    "*.psm1": "powershell",
+    "*.psd1": "powershell",
+    "*.py": "python",
+    "*.yml": "yaml",
+    "*.yaml": "yaml",
+    "*.json": "jsonc"
+  },
+  "extensions.autoUpdate": false,
+  "extensions.autoCheckUpdates": false,
+  "search.followSymlinks": false,
+  "search.useIgnoreFiles": true,
+  "problems.showCurrentInStatus": true,
+  "github.copilot.chat.alternateGptPrompt.enabled": true,
+  "chat.agent.maxRequests": 100,
+  "chat.todoListTool.enabled": true
+}
