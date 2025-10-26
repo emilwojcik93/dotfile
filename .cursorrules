@@ -1,0 +1,177 @@
+# PowerShell Development Environment - Coding Standards
+
+## Project Overview
+
+This dotfile repository provides a modern Infrastructure as Code (IaC) development environment setup for Windows 11, PowerShell, WSL, Python, and Docker with Beast Mode 3.1 Enhanced integration.
+
+## Critical PowerShell Coding Standards
+
+### Character Encoding & Syntax
+- **NEVER** use emojis or Unicode characters in scripts - use ONLY UTF-8/ASCII compatible characters
+- All scripts must use standard ASCII characters for compatibility across systems
+- No special Unicode symbols, arrows, or decorative characters in code
+- Files must be saved with UTF-8 encoding (no BOM) for maximum compatibility
+
+### Variable Naming & Usage Rules
+- **NEVER** use read-only/system variables as script variables:
+  - `$Error` (PowerShell error collection)
+  - `$host` (PowerShell host object)
+  - `$hostname` (system hostname)
+  - `$user` (current user)
+  - `$HOME` (user home directory)
+  - `$PWD` (present working directory)
+  - `$PROFILE` (PowerShell profile path)
+  - `$PSHOME` (PowerShell installation directory)
+  - `$PID` (process ID)
+  - `$LASTEXITCODE` (last exit code)
+
+### Bracketed Variable Syntax (PowerShell 5.x Compatible)
+Always use brackets for variables with special characters:
+- Use `${var}:` instead of `$var:`
+- Use `${var}%` instead of `$var%`  
+- Use `"${var}.exe"` instead of `"$var.exe"`
+- Use `${env:PATH}` instead of `$env:PATH` when concatenating
+- Use `${function:Get-Command}` for function references
+
+### PowerShell 5.x Compatibility Requirements
+- All scripts MUST be compatible with PowerShell 5.x (Windows 11 default)
+- Use proper bracketed variable syntax for complex expressions
+- Test all scripts on PowerShell 5.x before deployment
+- Avoid cmdlets or features only available in PowerShell 7+
+- Use `-Force` parameter instead of `-Confirm:$false` when available
+
+### Error Prevention & Syntax Safety
+- Avoid syntax that might lead to parsing errors or code corruption
+- Always validate input parameters before processing
+- Use proper error handling with `try/catch/finally` blocks
+- Never use workarounds - fix the actual underlying issue
+- Use `Write-Error` for user-facing errors, `throw` for critical failures
+- Always use `-ErrorAction Stop` when you need to halt on errors
+
+### Infrastructure as Code (IaC) Principles
+- All automation should be repeatable and idempotent
+- Use proper parameter validation with `[Parameter()]` attributes
+- Implement self-elevation for admin scripts (WinUtil-style pattern)
+- Support both interactive and silent/unattended modes
+- Provide comprehensive logging with timestamps
+- Use `-WhatIf` and `-Confirm` parameters where appropriate
+
+### Code Quality Standards
+- Write production-ready code, not examples or prototypes
+- Follow consistent formatting and indentation (4 spaces)
+- Use meaningful function and variable names (PascalCase for functions, camelCase for variables)
+- Implement proper logging and error messages with context
+- Always use atomic commits with descriptive conventional commit messages
+- Comment WHY something is done, not WHAT is done (unless code isn't self-explanatory)
+
+### Security & Best Practices
+- Never hardcode credentials or sensitive data in scripts
+- Validate all inputs before processing using proper validation attributes
+- Use secure methods for credential handling (`Get-Credential`, `ConvertTo-SecureString`)
+- Implement proper access controls and permission checking
+- Follow principle of least privilege
+- Use `Start-Process -Verb RunAs` for elevation instead of direct UAC bypass
+
+### Self-Elevation Pattern (WinUtil-Style)
+All scripts requiring administrator privileges should use this pattern:
+```powershell
+# Check if running as administrator
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Host "Requesting administrator privileges..." -ForegroundColor Yellow
+    Start-Process PowerShell -Verb RunAs "-File `"${PSCommandPath}`" $args"
+    exit
+}
+```
+
+### Unattended Installation Support
+- All installation scripts must support `-Silent` parameter
+- Use `winget install --silent --accept-package-agreements --accept-source-agreements`
+- Prevent interactive prompts in silent mode
+- Provide progress feedback even in silent mode
+- Log all operations with timestamps
+
+### Function and Script Templates
+Use the template pattern from `src/powershell/scripts/script-template.ps1`:
+- Proper parameter blocks with validation
+- Help documentation with examples
+- Error handling and logging
+- Self-elevation support
+- Silent mode support
+
+### File Naming Conventions
+- Script files: `Verb-Noun.ps1` (Pascal case)
+- Function files: `ModuleName.psm1`
+- Configuration files: `lowercase-with-hyphens.json`
+- Documentation: `UPPERCASE-TITLES.md`
+
+### Testing & Validation Requirements
+- All scripts must pass `Test-ScriptFileInfo` validation
+- Use `Invoke-ScriptAnalyzer` to check for best practices
+- Test in both PowerShell 5.1 and 7+ when available
+- Validate on clean Windows 11 systems
+- Test both interactive and silent modes
+
+### Git & Version Control
+- Use conventional commit messages: `type(scope): description`
+- Include issue IDs when available: `feat(install): add Docker support [PROJ-123]`
+- Always test scripts before committing
+- Use `.gitignore` to exclude temporary files and logs
+- Tag releases with semantic versioning
+
+### Documentation Requirements
+- All functions must have comment-based help
+- README files must include setup instructions and examples
+- Document any system requirements or dependencies
+- Include troubleshooting sections for common issues
+- Maintain changelog for version tracking
+
+### Specific Project Standards
+- Beast Mode integration must follow the established persona patterns
+- All environment setups must be unattended-capable
+- Docker and WSL integration should be optional but well-tested
+- PowerShell profile enhancements must be backwards compatible
+- VS Code extensions and settings must support team development
+
+## Error Examples & Corrections
+
+### ❌ Bad Examples:
+```powershell
+# Using read-only variables
+$Error = @()
+$host = "myserver"
+
+# Incorrect variable syntax
+$path:backup = "C:\Backup"
+Write-Host "Path: $env:PATH\bin"
+
+# Unicode characters
+Write-Host "✅ Installation complete! 🎉"
+
+# No error handling
+Copy-Item $source $destination
+```
+
+### ✅ Good Examples:
+```powershell
+# Use custom variable names
+${CustomErrors} = @()
+${TargetHost} = "myserver"
+
+# Correct variable syntax
+${path}:backup = "C:\Backup"
+Write-Host "Path: ${env:PATH}\bin"
+
+# ASCII only
+Write-Host "[SUCCESS] Installation complete!"
+
+# Proper error handling
+try {
+    Copy-Item $source $destination -ErrorAction Stop
+    Write-Host "[INFO] File copied successfully"
+} catch {
+    Write-Error "Failed to copy file: ${_}"
+    throw
+}
+```
+
+This project follows Infrastructure as Code principles with PowerShell 5.x compatibility as the primary requirement. All code must be production-ready and thoroughly tested.
