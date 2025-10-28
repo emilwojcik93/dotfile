@@ -1,8 +1,32 @@
-# PowerShell Development Environment - Coding Standards
+# PowerShell Development Environment - Coding Standards & Repository Management
 
 ## Project Overview
 
 This dotfile repository provides a modern Infrastructure as Code (IaC) development environment setup for Windows 11, PowerShell, WSL, Python, and Docker with Beast Mode 3.1 Enhanced integration.
+
+## Repository Activity Log
+
+### 2025-10-28: Repository Relocation
+**Activity**: Moved dotfile repository to dedicated development workspace
+- **Previous Location**: `${env:USERPROFILE}\GitHub\dotfile`
+- **New Location**: `${env:USERPROFILE}\Github\development-environment\dotfiles`
+- **Reason**: Better organization under dedicated development-environment subdirectory
+- **Method**: Git clone from origin to maintain full history and remote tracking
+- **Status**: Active development continues in new location
+
+### Repository Structure
+```
+~/Github/development-environment/dotfiles/
+├── .cursorrules                    # This file - coding standards & activity log
+├── .git/                          # Git repository (full history preserved)
+├── automation/                    # PowerShell installation scripts
+├── configs/                       # VS Code settings and configurations
+├── docs/                         # Documentation including CURSOR_RULES_SETUP.md
+├── src/                          # Source templates (PowerShell, Python, Bash)
+├── README.md                     # Main project documentation
+├── Beast Mode.chatmode.md        # Cursor AI chat mode configuration
+└── setup scripts                 # Various setup and validation scripts
+```
 
 ## Critical PowerShell Coding Standards
 
@@ -72,6 +96,14 @@ Always use brackets for variables with special characters:
 - Follow principle of least privilege
 - Use `Start-Process -Verb RunAs` for elevation instead of direct UAC bypass
 
+### Repository Management Standards
+- Use conventional commit messages: `type(scope): description`
+- Environment variables instead of hardcoded paths: `${env:USERPROFILE}`
+- No sensitive company/personal data in public repositories
+- Maintain clean git history with atomic commits
+- Document all major changes and relocations in this file
+- Regular updates to documentation and standards
+
 ### Self-Elevation Pattern (WinUtil-Style)
 All scripts requiring administrator privileges should use this pattern:
 ```powershell
@@ -132,6 +164,30 @@ Use the template pattern from `src/powershell/scripts/script-template.ps1`:
 - PowerShell profile enhancements must be backwards compatible
 - VS Code extensions and settings must support team development
 
+## Development Workflow in New Location
+
+### Setup Commands
+```powershell
+# Navigate to new workspace
+cd ${env:USERPROFILE}\Github\development-environment\dotfiles
+
+# Run setup
+.\setup.ps1
+
+# Install development environment
+.\automation\Install-DevEnvironment.ps1 -Silent
+
+# Validate setup
+.\Validate-DotfileSetup.ps1
+```
+
+### Working Directory Best Practices
+- Always work from: `${env:USERPROFILE}\Github\development-environment\dotfiles`
+- Use relative paths within the repository
+- Test scripts in isolated PowerShell sessions
+- Commit frequently with descriptive messages
+- Push changes regularly to maintain backup
+
 ## Error Examples & Corrections
 
 ### ❌ Bad Examples:
@@ -146,6 +202,9 @@ Write-Host "Path: $env:PATH\bin"
 
 # Unicode characters
 Write-Host "✅ Installation complete! 🎉"
+
+# Hardcoded paths
+cd C:\Users\6125750\GitHub\dotfile
 
 # No error handling
 Copy-Item $source $destination
@@ -164,6 +223,9 @@ Write-Host "Path: ${env:PATH}\bin"
 # ASCII only
 Write-Host "[SUCCESS] Installation complete!"
 
+# Environment variables
+cd ${env:USERPROFILE}\Github\development-environment\dotfiles
+
 # Proper error handling
 try {
     Copy-Item $source $destination -ErrorAction Stop
@@ -174,4 +236,25 @@ try {
 }
 ```
 
-This project follows Infrastructure as Code principles with PowerShell 5.x compatibility as the primary requirement. All code must be production-ready and thoroughly tested.
+## Maintenance Log
+
+### 2025-10-28
+- ✅ Repository relocated to `${env:USERPROFILE}\Github\development-environment\dotfiles`
+- ✅ Updated .cursorrules with repository management standards
+- ✅ Established new development workflow documentation
+- ✅ Maintained full git history and remote tracking
+
+### Future Activities
+- [ ] Regular testing of all scripts in new location
+- [ ] Update any absolute path references if found
+- [ ] Monitor for any location-specific issues
+- [ ] Maintain documentation currency
+
+## Related Documentation
+
+- `docs/CURSOR_RULES_SETUP.md` - Complete Cursor rules configuration guide
+- `README.md` - Main project documentation and setup instructions
+- `SETUP-COMPLETE.md` - Post-installation verification guide
+- `docs/setup/` - Detailed setup guides for various components
+
+This project follows Infrastructure as Code principles with PowerShell 5.x compatibility as the primary requirement. All code must be production-ready and thoroughly tested in the new repository location.
