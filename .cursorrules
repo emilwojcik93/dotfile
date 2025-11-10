@@ -1,260 +1,203 @@
-# PowerShell Development Environment - Coding Standards & Repository Management
+# Windows Development Environment - Coding Standards
 
 ## Project Overview
 
-This dotfile repository provides a modern Infrastructure as Code (IaC) development environment setup for Windows 11, PowerShell, WSL, Python, and Docker with Beast Mode 3.1 Enhanced integration.
+Modern Infrastructure as Code (IaC) development environment for Windows 11 with PowerShell, WSL, Python, and Docker.
 
-## Repository Activity Log
+**Repository Location**: `${env:USERPROFILE}\dotfile`
 
-### 2025-10-28: Repository Relocation
-**Activity**: Moved dotfile repository to dedicated development workspace
-- **Previous Location**: `${env:USERPROFILE}\GitHub\dotfile`
-- **New Location**: `${env:USERPROFILE}\Github\development-environment\dotfiles`
-- **Reason**: Better organization under dedicated development-environment subdirectory
-- **Method**: Git clone from origin to maintain full history and remote tracking
-- **Status**: Active development continues in new location
+## Repository Structure
 
-### Repository Structure
 ```
-~/Github/development-environment/dotfiles/
-├── .cursorrules                    # This file - coding standards & activity log
-├── .git/                          # Git repository (full history preserved)
-├── automation/                    # PowerShell installation scripts
-├── configs/                       # VS Code settings and configurations
-├── docs/                         # Documentation including CURSOR_RULES_SETUP.md
-├── src/                          # Source templates (PowerShell, Python, Bash)
-├── README.md                     # Main project documentation
-├── Beast Mode.chatmode.md        # Cursor AI chat mode configuration
-└── setup scripts                 # Various setup and validation scripts
+dotfile/
+├── automation/          # Installation & update scripts
+├── configs/            # VS Code & tool configurations
+├── src/                # Source files & templates
+├── docs/               # Documentation (topic-specific)
+├── Beast Mode.chatmode.md  # Cursor AI configuration
+├── .cursorrules        # This file - coding standards
+├── Install.ps1         # Quick installer
+└── README.md           # Main documentation
 ```
 
-## Critical PowerShell Coding Standards
+---
 
-### Character Encoding & Syntax
-- **NEVER** use emojis or Unicode characters in scripts - use ONLY UTF-8/ASCII compatible characters
-- All scripts must use standard ASCII characters for compatibility across systems
-- No special Unicode symbols, arrows, or decorative characters in code
-- Files must be saved with UTF-8 encoding (no BOM) for maximum compatibility
+## PowerShell Coding Standards
 
-### Variable Naming & Usage Rules
-- **NEVER** use read-only/system variables as script variables:
-  - `$Error` (PowerShell error collection)
-  - `$host` (PowerShell host object)
-  - `$hostname` (system hostname)
-  - `$user` (current user)
-  - `$HOME` (user home directory)
-  - `$PWD` (present working directory)
-  - `$PROFILE` (PowerShell profile path)
-  - `$PSHOME` (PowerShell installation directory)
-  - `$PID` (process ID)
-  - `$LASTEXITCODE` (last exit code)
+### Character Encoding
+- **UTF-8/ASCII ONLY** - No emojis or Unicode characters in scripts
+- Standard ASCII for maximum compatibility
+- UTF-8 encoding without BOM
 
-### Bracketed Variable Syntax (PowerShell 5.x Compatible)
-Always use brackets for variables with special characters:
-- Use `${var}:` instead of `$var:`
-- Use `${var}%` instead of `$var%`  
-- Use `"${var}.exe"` instead of `"$var.exe"`
-- Use `${env:PATH}` instead of `$env:PATH` when concatenating
-- Use `${function:Get-Command}` for function references
+### Variable Syntax (PowerShell 5.x Compatible)
+- Use bracketed syntax for special characters: `${var}:`, `${var}%`, `"${var}.exe"`
+- Use `${env:PATH}` when concatenating
+- **NEVER** use read-only variables as script variables: `$Error`, `$host`, `$HOME`, `$PWD`, `$PROFILE`, `$PID`, `$LASTEXITCODE`
 
-### PowerShell 5.x Compatibility Requirements
-- All scripts MUST be compatible with PowerShell 5.x (Windows 11 default)
-- Use proper bracketed variable syntax for complex expressions
-- Test all scripts on PowerShell 5.x before deployment
-- Avoid cmdlets or features only available in PowerShell 7+
-- Use `-Force` parameter instead of `-Confirm:$false` when available
+### PowerShell 5.x Compatibility
+- All scripts MUST work on PowerShell 5.1 (Windows 11 default)
+- Test on PowerShell 5.x before deployment
+- Avoid PowerShell 7+ exclusive features
+- Use `-Force` instead of `-Confirm:$false`
 
-### Error Prevention & Syntax Safety
-- Avoid syntax that might lead to parsing errors or code corruption
-- Always validate input parameters before processing
-- Use proper error handling with `try/catch/finally` blocks
-- Never use workarounds - fix the actual underlying issue
-- Use `Write-Error` for user-facing errors, `throw` for critical failures
-- Always use `-ErrorAction Stop` when you need to halt on errors
+### Error Handling
+- Use `try/catch/finally` blocks
+- Use `Write-Error` for user-facing errors
+- Use `throw` for critical failures
+- Add `-ErrorAction Stop` when halting is needed
+- Never use workarounds - fix the root cause
 
-### Infrastructure as Code (IaC) Principles
-- All automation should be repeatable and idempotent
-- Use proper parameter validation with `[Parameter()]` attributes
-- Implement self-elevation for admin scripts (WinUtil-style pattern)
-- Support both interactive and silent/unattended modes
-- Provide comprehensive logging with timestamps
-- Use `-WhatIf` and `-Confirm` parameters where appropriate
+### Infrastructure as Code Principles
+- Repeatable and idempotent automation
+- Parameter validation with `[Parameter()]` attributes
+- Self-elevation for admin scripts (WinUtil-style)
+- Support interactive and silent modes
+- Comprehensive logging with timestamps
+- Use `-WhatIf` and `-Confirm` where appropriate
 
-### Code Quality Standards
-- Write production-ready code, not examples or prototypes
-- Follow consistent formatting and indentation (4 spaces)
-- Use meaningful function and variable names (PascalCase for functions, camelCase for variables)
-- Implement proper logging and error messages with context
-- Always use atomic commits with descriptive conventional commit messages
-- Comment WHY something is done, not WHAT is done (unless code isn't self-explanatory)
+### Code Quality
+- Production-ready code, not examples
+- 4-space indentation
+- PascalCase for functions, camelCase for variables
+- Meaningful names
+- Comment WHY, not WHAT
+- Atomic commits with conventional commit messages: `type(scope): description`
 
-### Security & Best Practices
-- Never hardcode credentials or sensitive data in scripts
-- Validate all inputs before processing using proper validation attributes
-- Use secure methods for credential handling (`Get-Credential`, `ConvertTo-SecureString`)
-- Implement proper access controls and permission checking
-- Follow principle of least privilege
-- Use `Start-Process -Verb RunAs` for elevation instead of direct UAC bypass
+### Security
+- No hardcoded credentials
+- Validate all inputs
+- Use `Get-Credential`, `ConvertTo-SecureString`
+- Principle of least privilege
+- Use `Start-Process -Verb RunAs` for elevation
 
-### Repository Management Standards
-- Use conventional commit messages: `type(scope): description`
-- Environment variables instead of hardcoded paths: `${env:USERPROFILE}`
-- No sensitive company/personal data in public repositories
-- Maintain clean git history with atomic commits
-- Document all major changes and relocations in this file
-- Regular updates to documentation and standards
+---
 
-### Self-Elevation Pattern (WinUtil-Style)
-All scripts requiring administrator privileges should use this pattern:
+## Self-Elevation Pattern
+
+All admin scripts use WinUtil-style self-elevation:
+
 ```powershell
-# Check if running as administrator
-if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Host "Requesting administrator privileges..." -ForegroundColor Yellow
+if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host 'Requesting administrator privileges...' -ForegroundColor Yellow
     Start-Process PowerShell -Verb RunAs "-File `"${PSCommandPath}`" $args"
     exit
 }
 ```
 
-### Unattended Installation Support
-- All installation scripts must support `-Silent` parameter
+---
+
+## Unattended Installation Support
+
+- All scripts support `-Silent` parameter
 - Use `winget install --silent --accept-package-agreements --accept-source-agreements`
-- Prevent interactive prompts in silent mode
-- Provide progress feedback even in silent mode
+- No interactive prompts in silent mode
 - Log all operations with timestamps
 
-### Function and Script Templates
-Use the template pattern from `src/powershell/scripts/script-template.ps1`:
-- Proper parameter blocks with validation
-- Help documentation with examples
-- Error handling and logging
-- Self-elevation support
-- Silent mode support
+---
 
-### File Naming Conventions
-- Script files: `Verb-Noun.ps1` (Pascal case)
-- Function files: `ModuleName.psm1`
-- Configuration files: `lowercase-with-hyphens.json`
-- Documentation: `UPPERCASE-TITLES.md`
+## File Naming Conventions
 
-### Testing & Validation Requirements
-- All scripts must pass `Test-ScriptFileInfo` validation
-- Use `Invoke-ScriptAnalyzer` to check for best practices
-- Test in both PowerShell 5.1 and 7+ when available
-- Validate on clean Windows 11 systems
-- Test both interactive and silent modes
+- Scripts: `Verb-Noun.ps1` (PascalCase)
+- Functions: `ModuleName.psm1`
+- Configs: `lowercase-with-hyphens.json`
+- Docs: `UPPERCASE-TITLES.md`
 
-### Git & Version Control
-- Use conventional commit messages: `type(scope): description`
-- Include issue IDs when available: `feat(install): add Docker support [PROJ-123]`
-- Always test scripts before committing
-- Use `.gitignore` to exclude temporary files and logs
+---
+
+## Git & Version Control
+
+- Conventional commits: `type(scope): description`
+- Include issue IDs: `feat(install): add Docker [PROJ-123]`
+- Test before committing
+- Use `.gitignore` for temp files
 - Tag releases with semantic versioning
 
-### Documentation Requirements
-- All functions must have comment-based help
-- README files must include setup instructions and examples
-- Document any system requirements or dependencies
-- Include troubleshooting sections for common issues
-- Maintain changelog for version tracking
+---
 
-### Specific Project Standards
-- Beast Mode integration must follow the established persona patterns
-- All environment setups must be unattended-capable
-- Docker and WSL integration should be optional but well-tested
-- PowerShell profile enhancements must be backwards compatible
-- VS Code extensions and settings must support team development
+## Documentation Requirements
 
-## Development Workflow in New Location
+- All functions have comment-based help
+- README with setup instructions
+- Document system requirements
+- Include troubleshooting sections
+- Maintain changelog
 
-### Setup Commands
+---
+
+## Error Examples
+
+### ❌ Bad
 ```powershell
-# Navigate to new workspace
-cd ${env:USERPROFILE}\Github\development-environment\dotfiles
-
-# Run setup
-.\setup.ps1
-
-# Install development environment
-.\automation\Install-DevEnvironment.ps1 -Silent
-
-# Validate setup
-.\Validate-DotfileSetup.ps1
+$Error = @()                    # Using read-only variable
+$path:backup = "C:\Backup"      # Incorrect syntax
+Write-Host "✅ Done! 🎉"        # Unicode characters
+cd C:\Users\user\dotfile        # Hardcoded path
+Copy-Item $source $dest         # No error handling
 ```
 
-### Working Directory Best Practices
-- Always work from: `${env:USERPROFILE}\Github\development-environment\dotfiles`
-- Use relative paths within the repository
-- Test scripts in isolated PowerShell sessions
-- Commit frequently with descriptive messages
-- Push changes regularly to maintain backup
-
-## Error Examples & Corrections
-
-### ❌ Bad Examples:
+### ✅ Good
 ```powershell
-# Using read-only variables
-$Error = @()
-$host = "myserver"
-
-# Incorrect variable syntax
-$path:backup = "C:\Backup"
-Write-Host "Path: $env:PATH\bin"
-
-# Unicode characters
-Write-Host "✅ Installation complete! 🎉"
-
-# Hardcoded paths
-cd C:\Users\6125750\GitHub\dotfile
-
-# No error handling
-Copy-Item $source $destination
-```
-
-### ✅ Good Examples:
-```powershell
-# Use custom variable names
-${CustomErrors} = @()
-${TargetHost} = "myserver"
-
-# Correct variable syntax
-${path}:backup = "C:\Backup"
-Write-Host "Path: ${env:PATH}\bin"
-
-# ASCII only
-Write-Host "[SUCCESS] Installation complete!"
-
-# Environment variables
-cd ${env:USERPROFILE}\Github\development-environment\dotfiles
-
-# Proper error handling
+${CustomErrors} = @()           # Custom variable name
+${path}:backup = "C:\Backup"    # Correct bracketed syntax
+Write-Host "[SUCCESS] Done!"    # ASCII only
+cd ${env:USERPROFILE}\dotfile   # Environment variable
 try {
-    Copy-Item $source $destination -ErrorAction Stop
-    Write-Host "[INFO] File copied successfully"
+    Copy-Item $source $dest -ErrorAction Stop
+    Write-Host "[INFO] File copied"
 } catch {
-    Write-Error "Failed to copy file: ${_}"
+    Write-Error "Failed: ${_}"
     throw
 }
 ```
 
+---
+
+## Development Workflow
+
+### Setup
+```powershell
+cd ${env:USERPROFILE}\dotfile
+.\Install.ps1
+```
+
+### Testing
+- Test in isolated PowerShell sessions
+- Validate on clean Windows 11 systems
+- Test both interactive and silent modes
+- Check PowerShell 5.1 and 7.x compatibility
+
+### Committing
+```powershell
+git add .
+git commit -m "feat(scope): description"
+git push
+```
+
+---
+
 ## Maintenance Log
 
-### 2025-10-28
-- ✅ Repository relocated to `${env:USERPROFILE}\Github\development-environment\dotfiles`
-- ✅ Updated .cursorrules with repository management standards
-- ✅ Established new development workflow documentation
-- ✅ Maintained full git history and remote tracking
+### 2025-11-10: Repository Reorganization
+- ✅ Streamlined documentation structure
+- ✅ Consolidated to essential scripts only
+- ✅ Created focused topic-specific docs (COMMANDS, TROUBLESHOOTING, WSL_DOCKER)
+- ✅ Updated README with clear structure
+- ✅ Removed redundant/deprecated files
 
-### Future Activities
-- [ ] Regular testing of all scripts in new location
-- [ ] Update any absolute path references if found
-- [ ] Monitor for any location-specific issues
-- [ ] Maintain documentation currency
+### 2025-10-28: Repository Relocation
+- ✅ Moved to `${env:USERPROFILE}\dotfile`
+- ✅ Maintained full git history
+- ✅ Updated all path references
+
+---
 
 ## Related Documentation
 
-- `docs/CURSOR_RULES_SETUP.md` - Complete Cursor rules configuration guide
-- `README.md` - Main project documentation and setup instructions
-- `SETUP-COMPLETE.md` - Post-installation verification guide
-- `docs/setup/` - Detailed setup guides for various components
+- [README.md](README.md) - Main project documentation
+- [docs/COMMANDS.md](docs/COMMANDS.md) - Frequently used commands
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues
+- [docs/WSL_DOCKER.md](docs/WSL_DOCKER.md) - Linux subsystem setup
 
-This project follows Infrastructure as Code principles with PowerShell 5.x compatibility as the primary requirement. All code must be production-ready and thoroughly tested in the new repository location.
+---
+
+**This project follows Infrastructure as Code principles with PowerShell 5.x compatibility as the primary requirement. All code must be production-ready and thoroughly tested.**

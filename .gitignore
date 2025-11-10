@@ -148,3 +148,28 @@ secrets/
 
 # === WSL specific ===
 .wslconfig.user
+
+# === AI Generated Files ===
+# Cursor AI chat history and outputs
+.cursor/
+.cursorrules.backup
+*.chatmode.backup
+
+# AI-generated summaries and reports
+*SUMMARY*.md
+*REPORT*.md
+*ANALYSIS*.md
+*STRUCTURE*.md
+REPOSITORY_*.md
+SETUP-COMPLETE*.md
+VALIDATION-REPORT*.md
+
+# AI conversation logs
+conversation*.md
+chat-history*.md
+ai-output*.md
+
+# Temporary AI files
+.ai-temp/
+ai-generated/
+cursor-outputs/

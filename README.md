@@ -1,466 +1,314 @@
-# Modern Development Environment - IaC Edition
+# Windows Development Environment - IaC Edition
 
-A professional Infrastructure as Code (IaC) setup for Windows 11, PowerShell, WSL, Python, and Docker development environments with Beast Mode 3.1 Enhanced integration.
-
-## 🚀 Quick Start
-
-**Prerequisites:**
-- Windows 11 (PowerShell 5.x included)
-- Internet connection for package downloads
-- App Installer (winget) - Available from Microsoft Store
-- VS Code (for Beast Mode 3.1 Enhanced)
-
-### 🎯 Beast Mode 3.1 Enhanced Setup
-
-**Step 1: Configure VS Code Settings**
-```json
-{
-    "chat.tools.autoApprove": true,
-    "chat.agent.maxRequests": 100
-}
-```
-
-**Step 2: Install Beast Mode Custom Chat Mode**
-1. Open VS Code
-2. Go to Chat > "..." > "Configure Modes"
-3. Select "Create new custom chat mode file"  
-4. Choose "User Data Folder" (makes it global)
-5. Paste contents from `Beast Mode.chatmode.md`
-6. Save as "Beast Mode 3.1 Enhanced"
-
-**Step 3: Activate Beast Mode**
-- Select "Beast Mode 3.1 Enhanced" from agent dropdown in VS Code Chat
-- Beast Mode is now ready with enhanced IaC workflows!
-
-### 🏃‍♂️ Environment Auto-Detection & Setup
-
-**Comprehensive Environment Setup:**
-```powershell
-# Auto-detects and installs all components
-.\automation\Install-Environment-Auto.ps1 -Silent
-```
-
-**Components Auto-Detected:**
-- ✅ Windows 11 (mandatory) - Build validation and OS version check
-- ✅ PowerShell 5.x (mandatory) - Primary automation environment  
-- ✅ PowerShell 7.x (optional) - Supplementary with enhanced features
-- ✅ Python Windows (optional) - Native Windows development
-- ✅ WSL Ubuntu (optional) - Registry-based detection with user mapping
-- ✅ Python in WSL (optional) - Cross-platform Python development
-- ✅ Docker in WSL (optional) - Container development (NO Docker Desktop)
-- ✅ Docker Compose (optional) - Multi-container orchestration
-
-**Registry-Based WSL Detection:**
-- Checks `HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Lxss`
-- Validates distribution names and user IDs
-- Automatic fallback to command-based detection
-- Ubuntu 24.04.3 LTS compatibility verified
-
-**Winget Package Validation:**
-Use these commands to verify package availability before installation:
-```powershell
-# Search for packages
-winget search git
-
-# Validate package exists
-winget show Git.Git
-
-# Check available versions
-winget search Git.Git --versions
-```
-
-**Package Verification Sources:**
-- GitHub Manifests: https://github.com/microsoft/winget-pkgs/tree/master/manifests
-- Winget.run: https://winget.run/pkg/Git/Git
-- Winstall.app: https://winstall.app/apps/Git.Git
-
-**One-Command Installation (Self-Elevating):**
-```powershell
-# No need to run as Administrator - script will self-elevate automatically
-.\automation\Install-DevEnvironment.ps1
-```
-
-**Silent Installation (Recommended for automation):**
-```powershell
-# Completely unattended installation with automatic elevation
-.\automation\Install-DevEnvironment.ps1 -Silent
-```
-
-## � WSL Docker Environment Setup
-
-For developers who prefer Docker Engine in WSL Ubuntu over Docker Desktop, use our specialized WSL Docker setup script. This script uses root commands to avoid password prompts and provides a complete containerized development environment.
-
-### Features
-- **Password-Free Setup**: Uses `wsl --user root bash -c '<COMMAND>'` to avoid sudo prompts
-- **Official Docker Installation**: Follows official Docker Engine installation guidelines
-- **TCP Socket Configuration**: Enables Windows integration via port 2375
-- **Comprehensive Logging**: All operations logged to timestamped files in `$env:TEMP`
-- **Full Validation**: 7-step validation process ensures everything works correctly
-- **SystemD Integration**: Proper service management with Docker daemon configuration
-
-### Quick Start
-```powershell
-# Standard WSL Docker setup with validation
-.\automation\Install-WSLDockerEnvironment.ps1
-
-# Silent installation for automation
-.\automation\Install-WSLDockerEnvironment.ps1 -Silent
-
-# Clean installation (removes existing Ubuntu WSL)
-.\automation\Install-WSLDockerEnvironment.ps1 -CleanInstall -Force
-
-# Skip validation for faster setup
-.\automation\Install-WSLDockerEnvironment.ps1 -SkipValidation
-```
-
-### What It Does
-1. **WSL Availability Check**: Verifies WSL is enabled and configured
-2. **Ubuntu Distribution**: Installs/detects Ubuntu WSL distribution via registry
-3. **Sudoers Configuration**: Sets up NOPASSWD access for seamless operations
-4. **Python Installation**: Installs Python 3 and development tools
-5. **Docker Installation**: Installs Docker CE following official best practices
-6. **Post-Installation**: Configures Docker daemon, TCP socket, and systemd services
-7. **Windows Integration**: Sets DOCKER_HOST environment variable for VS Code
-8. **Comprehensive Validation**: Tests all components and connectivity
-
-### Log Files
-All operations are logged with timestamps to help troubleshoot any issues:
-```powershell
-# View latest log
-$logFile = Get-ChildItem $env:TEMP -Filter "*WSL-Docker-Setup*" | Sort CreationTime -Desc | Select -First 1
-Get-Content $logFile.FullName
-```
-
-### Docker Integration
-After installation, Docker commands work seamlessly from Windows PowerShell:
-```powershell
-# Test Docker connectivity
-docker ps
-docker --version
-docker compose --version
-
-# Run hello-world container
-docker run --rm hello-world
-```
-
-**No Docker Desktop Required**: This setup provides native Docker Engine in WSL Ubuntu, eliminating the need for Docker Desktop while maintaining full compatibility with VS Code Docker extension.
-
-## �🛡️ WinUtil-Style Self-Elevation
-
-Our installation script uses the same proven self-elevation pattern as [ChrisTitusTech's WinUtil](https://github.com/ChrisTitusTech/winutil):
-
-- **Automatic Admin Detection**: Checks for Administrator privileges
-- **Smart Parameter Preservation**: Maintains all command-line arguments during elevation
-- **Windows Terminal Integration**: Uses Windows Terminal when available
-- **Unattended Mode**: Automatically adds `-Silent` flag for elevated sessions
-- **Error Handling**: Graceful fallback and error reporting
-
-**How it works:**
-1. Script detects if running as Administrator
-2. If not, builds argument list preserving all parameters
-3. Launches new elevated session with Windows Terminal (if available) or PowerShell
-4. Continues installation with same parameters in elevated context
-5. No user interaction required for elevation process
-
-## 🏗️ Infrastructure as Code Architecture
-
-This repository follows modern IaC principles:
-
-### 📁 Repository Structure
-```
-dotfile/
-├── src/                    # Source code and scripts
-│   ├── powershell/        # PowerShell modules and profiles
-│   └── python/            # Python utilities and helpers
-├── configs/               # Configuration files
-│   ├── vscode/           # VS Code settings and extensions
-│   ├── git/              # Git configuration
-│   └── ssh/              # SSH keys and config
-├── automation/           # Installation and deployment scripts
-│   ├── Install-DevEnvironment.ps1     # Self-elevating installer
-│   ├── Install-Environment-Auto.ps1   # Auto-detection installer
-│   ├── Install-WSLDockerEnvironment.ps1 # WSL Docker setup (root commands)
-│   └── Update-Environment.ps1         # Self-elevating updater
-├── docs/                 # Documentation and guides
-│   ├── setup/            # Setup instructions
-│   └── troubleshooting/  # Common issues and solutions
-└── .github/              # GitHub-specific files
-    └── workflows/        # GitHub Actions (future)
-```
-
-### 🎯 Core Principles
-
-1. **No Static Assets**: All dependencies downloaded from official sources
-2. **Dynamic Downloads**: Packages fetched via winget and official repositories
-3. **Version Control**: Only source code, scripts, and configurations stored
-4. **Cross-Platform**: Windows 11, WSL, Docker, and Python support
-5. **Professional Quality**: Enterprise-grade automation and error handling
-6. **Unattended Operation**: No interactive prompts in silent mode
-
-## 🛠️ Features
-
-### Beast Mode 3.1 Enhanced
-- **Persona-Based Workflow**: Product Manager, Architect, Implementer, Problem Solver, Reviewer personas
-- **Enhanced Internet Research**: Multi-engine search with Bing/DuckDuckGo fallbacks
-- **Live Documentation Fetching**: Always uses latest official documentation
-- **shadcn/ui Integration**: Automatic component documentation lookup
-- **IaC Guidelines**: Proper PowerShell 5.x syntax with `${var}` notation
-
-### Development Tools
-- **VS Code**: Latest version with essential extensions
-- **PowerShell 7+**: Modern PowerShell with backwards compatibility
-- **Python 3.12**: Latest stable Python with pip management
-- **Docker Desktop**: Container development support
-- **Git**: Version control with enhanced configuration
-- **WSL Integration**: Ubuntu subsystem support
-
-### Enhanced PowerShell Profile
-- **Modern Prompt**: Git branch display and colored output
-- **Navigation Shortcuts**: `ll`, `la`, `..`, `...` aliases
-- **Git Shortcuts**: `gs`, `gp`, `gpl`, `gc`, `ga` commands
-- **Development Helpers**: `py`, `pip`, `code` shortcuts
-- **System Information**: `sysinfo` command for system details
-- **Beast Mode Helper**: `beast` command for configuration info
-
-## 🔧 Installation Options
-
-### Standard Installation (Self-Elevating)
-```powershell
-.\automation\Install-DevEnvironment.ps1
-```
-
-### Silent Installation (Unattended)
-```powershell
-.\automation\Install-DevEnvironment.ps1 -Silent
-```
-
-### Custom Installation Options
-```powershell
-# Skip specific components
-.\automation\Install-DevEnvironment.ps1 -SkipPython -SkipDocker
-
-# Custom log location
-.\automation\Install-DevEnvironment.ps1 -LogPath "C:\Logs\DevInstall.log"
-
-# Force installation even with validation errors
-.\automation\Install-DevEnvironment.ps1 -Force
-
-# Silent mode with custom options
-.\automation\Install-DevEnvironment.ps1 -Silent -SkipVSCodeExtensions
-```
-
-## 📋 What Gets Installed
-
-### Core Applications (via winget - unattended mode)
-- Visual Studio Code (with CLI integration)
-- Git for Windows
-- PowerShell 7+
-- Python 3.12 (optional)
-- Docker Desktop (optional)
-
-### VS Code Extensions (silent installation)
-- PowerShell extension
-- Python extension
-- WSL extension
-- Dev Containers extension
-- GitHub Copilot & Chat
-- Tailwind CSS IntelliSense
-- Prettier code formatter
-
-### Configuration Files
-- Enhanced PowerShell profile with shortcuts
-- VS Code settings with Beast Mode integration
-- Beast Mode 3.1 Enhanced chatmode file
-- Git configuration templates
-
-## 🔄 Environment Maintenance
-
-Update your environment with the same self-elevating pattern:
-
-### Standard Update
-```powershell
-.\automation\Update-Environment.ps1
-```
-
-### Silent Update (Recommended for scheduled tasks)
-```powershell
-.\automation\Update-Environment.ps1 -Silent
-```
-
-### Selective Updates
-```powershell
-# Update only packages
-.\automation\Update-Environment.ps1 -UpdateExtensions:$false -UpdateConfigs:$false
-
-# Update only configurations
-.\automation\Update-Environment.ps1 -UpdatePackages:$false -UpdateExtensions:$false
-```
-
-## 🐍 Python Development
-
-The environment includes Python 3.12 with virtual environment helpers:
-
-```powershell
-# Create virtual environment
-venv-create myproject
-
-# Activate virtual environment
-venv-activate myproject
-
-# Use pip shortcut
-pip install requests
-```
-
-## 🐳 Docker Integration
-
-Docker Desktop integration with PowerShell shortcuts:
-
-```powershell
-# Docker shortcuts
-dps                    # docker ps
-dimg                   # docker images
-drun ubuntu:latest     # docker run
-dexec -it container    # docker exec
-```
-
-## 🔧 Beast Mode 3.1 Enhanced
-
-Beast Mode is integrated into VS Code as a chat mode:
-
-1. **Location**: `%APPDATA%\Code\User\prompts\Beast Mode.chatmode.md`
-2. **Access**: VS Code → Chat sidebar → Agent dropdown → "Beast Mode"
-3. **Features**:
-   - Persona-based development workflow
-   - Enhanced internet research with live fetching
-   - Infrastructure as Code principles
-   - PowerShell 5.x compatibility
-   - shadcn/ui documentation integration
-
-📖 **[Complete Beast Mode Setup Guide](docs/setup/beast-mode-guide.md)** - Comprehensive installation, configuration, and usage documentation.
-
-### Beast Mode Personas
-- **Product Manager**: Requirements gathering and PRDs
-- **Software Architect**: Technical design and implementation guides
-- **Implementer**: Clean code following IaC principles
-- **Problem Solver**: Debugging and root cause analysis
-- **Reviewer**: Code review and validation
-
-## 🖥️ PowerShell 5.x Compatibility
-
-All scripts use proper Windows 11 PowerShell 5.x syntax:
-
-- **Variable Syntax**: `${var}:` instead of `$var:`
-- **Special Characters**: `${var}%` instead of `$var%`
-- **Path Handling**: `"${var}.exe"` instead of `"$var.exe"`
-- **UTF-8/ASCII Only**: No Unicode characters in source files
-- **Self-Elevation**: WinUtil-style admin privilege handling
-
-## 🔍 System Information
-
-Get comprehensive system details:
-
-```powershell
-sysinfo
-```
-
-Shows OS version, CPU, RAM, PowerShell version, WSL status, and Docker availability.
-
-## 📱 WSL Integration
-
-The environment supports Ubuntu WSL:
-
-```powershell
-# Install WSL if not present
-wsl --install
-
-# Access Ubuntu
-wsl
-```
-
-VS Code includes WSL extension for seamless development across Windows and Linux.
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-**Script Won't Run:**
-- Script automatically handles execution policy and elevation
-- If still having issues: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-
-**Winget Not Found:**
-- Install "App Installer" from Microsoft Store
-- Restart PowerShell
-
-**Installation Stuck on Interactive Prompt:**
-- Use `-Silent` parameter for unattended installation
-- Script automatically prevents interactive prompts in elevated mode
-
-### Unattended Installation Advantages
-
-- **No User Interaction**: Silent mode prevents all interactive prompts
-- **Automatic Elevation**: No need to manually run as Administrator
-- **Comprehensive Logging**: Timestamped logs for troubleshooting
-- **Error Resilience**: Continues installation even if some components fail
-- **Scheduled Execution**: Perfect for automated deployment
-
-### Log Files
-
-Installation logs with timestamps:
-- Installation: `%TEMP%\DevEnvInstall_YYYY-MM-DD_HH-mm-ss.log`
-- Updates: `%TEMP%\DevEnvUpdate_YYYY-MM-DD_HH-mm-ss.log`
-
-## 🔄 Updates
-
-Update the environment with the same self-elevating pattern:
-
-```powershell
-# Standard update (self-elevating)
-.\automation\Update-Environment.ps1
-
-# Silent update (unattended)
-.\automation\Update-Environment.ps1 -Silent
-```
-
-## � Documentation
-
-### Setup & Configuration
-- **[Installation Guide](docs/setup/installation-guide.md)** - Complete setup instructions and requirements
-- **[Beast Mode Complete Guide](docs/setup/beast-mode-guide.md)** - Comprehensive Beast Mode 3.1 setup and usage
-- **[Validation Report](docs/setup/validation-report.md)** - Environment validation and testing procedures
-
-### Troubleshooting
-- **[Common Issues](docs/troubleshooting/common-issues.md)** - General troubleshooting and solutions
-- **[Beast Mode Issues](docs/troubleshooting/beast-mode-issues.md)** - Specific Beast Mode troubleshooting
-- **[Installation Fixes](docs/troubleshooting/installation-fixes.md)** - Environment setup issue resolution
-
-### Advanced Topics
-- **[PowerShell Functions](src/powershell/functions/)** - Custom PowerShell modules and utilities
-- **[Script Templates](src/powershell/scripts/)** - Reusable script templates with IaC principles
-- **[Python Modules](src/python/modules/)** - Python utilities and validation functions
-
-## �📝 Contributing
-
-1. Follow IaC principles - no static assets
-2. Use PowerShell 5.x compatible syntax with `${var}` brackets
-3. Implement WinUtil-style self-elevation for admin scripts
-4. Test on clean Windows 11 systems in both interactive and silent modes
-5. Update documentation for changes
-6. Maintain UTF-8/ASCII character compliance
-
-## 📄 License
-
-MIT License - Feel free to adapt for your development needs.
-
-## 🎯 Next Steps After Installation
-
-1. **No Terminal Restart Needed**: Script installs in current session
-2. **Test Profile**: Type `beast` to see Beast Mode info
-3. **Open VS Code**: Launch and check extensions loaded automatically
-4. **Configure Git**: Set up your Git user details
-5. **Install WSL**: Run `wsl --install` if needed (optional)
-6. **Test Python**: Create and activate virtual environment
-7. **Test Docker**: Verify Docker Desktop is running
+**Modern Infrastructure as Code setup for Windows 11 development with PowerShell, WSL, Python, and Docker.**
 
 ---
 
-**Beast Mode 3.1 Enhanced - IaC Edition**: Modern development environment with autonomous AI assistance, professional tooling, WinUtil-style automation, and Infrastructure as Code principles for completely unattended installation and maintenance.
+## 🚀 Quick Start
+
+```powershell
+# Clone repository
+git clone <your-repo-url> ${env:USERPROFILE}\dotfile
+cd ${env:USERPROFILE}\dotfile
+
+# Install everything (auto-elevates to admin)
+.\Install.ps1
+
+# Or install with options
+.\automation\Install-DevEnvironment.ps1 -Silent -SkipDocker
+```
+
+**That's it!** The script handles everything: package installation, VS Code extensions, PowerShell profile, and configuration.
+
+---
+
+## 📦 What Gets Installed
+
+### Core Tools (via winget)
+- **Visual Studio Code** - Primary IDE with context menu integration
+- **Cursor IDE** - AI-powered editor (optional)
+- **Git** - Version control
+- **PowerShell 7+** - Modern PowerShell (alongside Windows PowerShell 5.x)
+- **Python 3.12** - Latest Python (optional)
+- **Docker Desktop** - Containers (optional)
+
+### VS Code Extensions (auto-detected based on installed tools)
+- GitHub Copilot & Chat
+- PowerShell, Python, Docker extensions
+- GitLens, Prettier, Local History
+- WSL & Dev Containers (if available)
+
+### Configuration
+- Enhanced PowerShell profile with shortcuts
+- VS Code settings optimized for development
+- Beast Mode 3.1 Enhanced chat mode (Cursor AI)
+- Git configuration templates
+
+---
+
+## 📁 Repository Structure
+
+```
+dotfile/
+├── automation/              # Installation & update scripts
+│   ├── Install-DevEnvironment.ps1      # Main installer (recommended)
+│   ├── Install-CursorIDE.ps1          # Cursor IDE with full integration
+│   └── Update-Environment.ps1          # Update all packages & extensions
+├── configs/                 # VS Code & tool configurations
+│   ├── settings.json       # VS Code settings
+│   ├── extensions.json     # Recommended extensions
+│   └── tasks.json          # VS Code tasks
+├── src/                    # Source files & templates
+│   ├── powershell/
+│   │   └── profile.ps1     # Enhanced PowerShell profile
+│   └── python/
+│       └── requirements.txt # Python dependencies
+├── docs/                   # Documentation (topic-specific)
+│   ├── COMMANDS.md         # Frequently used commands
+│   ├── TROUBLESHOOTING.md  # Common issues & solutions
+│   └── WSL_DOCKER.md       # WSL & Docker setup guide
+├── Beast Mode.chatmode.md  # Cursor AI chat mode configuration
+├── .cursorrules            # AI coding standards & instructions
+├── Install.ps1             # Quick installer wrapper
+└── README.md               # This file
+```
+
+---
+
+## 🔧 Installation Options
+
+### Standard Installation
+```powershell
+.\Install.ps1
+```
+Runs interactive installation with progress output.
+
+### Silent Installation (Recommended for automation)
+```powershell
+.\automation\Install-DevEnvironment.ps1 -Silent
+```
+Fully unattended installation - perfect for scripts or scheduled tasks.
+
+### Custom Installation
+```powershell
+# Skip optional components
+.\automation\Install-DevEnvironment.ps1 -SkipPython -SkipDocker
+
+# Force continue despite errors
+.\automation\Install-DevEnvironment.ps1 -Force
+
+# Custom log location
+.\automation\Install-DevEnvironment.ps1 -LogPath "C:\Logs\install.log"
+```
+
+### Cursor IDE Installation
+```powershell
+# Install Cursor with full context menu integration
+.\automation\Install-CursorIDE.ps1 -Silent
+```
+
+---
+
+## 🔄 Maintenance & Updates
+
+### Update Everything
+```powershell
+# Update all packages and extensions
+.\automation\Update-Environment.ps1 -Silent
+```
+
+### Manual Updates
+```powershell
+# Update all winget packages
+winget upgrade --accept-package-agreements --accept-source-agreements --include-unknown --all
+
+# Update VS Code extensions
+code --list-extensions | ForEach-Object { code --install-extension $_ --force }
+
+# Reload PowerShell profile
+. $PROFILE
+```
+
+---
+
+## 📚 Documentation
+
+### Quick References
+- **[Command Reference](docs/COMMANDS.md)** - Frequently used commands and examples
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[WSL & Docker Setup](docs/WSL_DOCKER.md)** - Linux subsystem and container setup
+
+### Configuration Files
+- **[.cursorrules](.cursorrules)** - AI coding standards and repository guidelines
+- **[Beast Mode](Beast%20Mode.chatmode.md)** - Cursor AI chat mode configuration
+- **[VS Code Settings](configs/settings.json)** - Editor configuration
+
+---
+
+## 💡 Key Features
+
+### 1. Infrastructure as Code
+- No static assets - everything downloaded from official sources
+- Dynamic package management via winget
+- Idempotent installations - safe to run multiple times
+- Version-controlled configurations
+
+### 2. Self-Elevating Scripts
+- Automatic admin privilege handling (WinUtil-style)
+- No manual "Run as Administrator" needed
+- Preserves all command-line parameters
+- Works with Windows Terminal
+
+### 3. Conditional Installation
+- Auto-detects installed tools
+- Installs only relevant VS Code extensions
+- Skips unnecessary components
+- Validates system capabilities
+
+### 4. PowerShell 5.x Compatible
+- Works on default Windows 11 PowerShell
+- Proper bracketed variable syntax: `${var}`
+- UTF-8/ASCII only (no Unicode characters)
+- Tested on PowerShell 5.1 and 7.x
+
+### 5. Enhanced PowerShell Profile
+```powershell
+# Navigation shortcuts
+ll, la          # List files
+.., ...         # Navigate up directories
+
+# Git shortcuts
+gs              # git status
+ga .            # git add .
+gc "msg"        # git commit -m "msg"
+gp, gpl         # git push/pull
+
+# Development
+py              # python
+code .          # Open VS Code
+sysinfo         # System information
+beast           # Beast Mode info
+```
+
+---
+
+## 🎯 Common Tasks
+
+### Install Cursor IDE with Full Integration
+```powershell
+.\automation\Install-CursorIDE.ps1 -Silent
+```
+Adds context menu, file associations, and PATH configuration.
+
+### Install VS Code with Full Integration
+```powershell
+winget install --force Microsoft.VisualStudioCode --override '/VERYSILENT /SP- /MERGETASKS="addcontextmenufiles,addcontextmenufolders,associatewithfiles,addtopath"'
+```
+
+### Update All Packages
+```powershell
+winget upgrade --accept-package-agreements --accept-source-agreements --include-unknown --all
+```
+
+### Setup WSL with Docker (No Docker Desktop)
+```powershell
+# Install WSL
+wsl --install
+
+# Install Docker in WSL (native Docker Engine)
+# See docs/WSL_DOCKER.md for detailed guide
+```
+
+---
+
+## 🔍 System Requirements
+
+- **OS**: Windows 11 (Windows 10 may work but untested)
+- **PowerShell**: 5.1+ (included in Windows 11)
+- **Winget**: App Installer from Microsoft Store
+- **Internet**: Required for package downloads
+- **Disk Space**: ~5GB for full installation
+
+---
+
+## 🚨 Troubleshooting
+
+### Script Won't Run
+```powershell
+# Set execution policy (if needed)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Scripts auto-elevate to admin - no manual elevation needed
+```
+
+### Winget Not Found
+```powershell
+# Install App Installer from Microsoft Store
+# Then restart PowerShell
+```
+
+### Installation Fails
+```powershell
+# Check logs
+Get-ChildItem $env:TEMP -Filter "*DevEnv*.log" | Sort-Object CreationTime -Desc | Select-Object -First 1 | Get-Content
+
+# Run with Force to continue despite errors
+.\automation\Install-DevEnvironment.ps1 -Force
+```
+
+**For more issues, see [Troubleshooting Guide](docs/TROUBLESHOOTING.md)**
+
+---
+
+## 🎨 Beast Mode 3.1 Enhanced
+
+**AI-powered development assistant for Cursor IDE**
+
+### Setup
+1. Install Cursor IDE: `.\automation\Install-CursorIDE.ps1`
+2. Open Cursor → Chat → "..." → "Configure Modes"
+3. Create new custom chat mode
+4. Paste contents from `Beast Mode.chatmode.md`
+5. Save as "Beast Mode 3.1 Enhanced"
+
+### Features
+- Persona-based workflow (Product Manager, Architect, Implementer, etc.)
+- Enhanced internet research with live documentation
+- Infrastructure as Code principles
+- PowerShell 5.x compatibility enforcement
+- shadcn/ui integration
+
+---
+
+## 🤝 Contributing
+
+1. Follow IaC principles - no static assets
+2. Use PowerShell 5.x compatible syntax: `${var}`
+3. Test on clean Windows 11 systems
+4. Update documentation for changes
+5. Use conventional commit messages
+
+---
+
+## 📄 License
+
+MIT License - Adapt freely for your needs.
+
+---
+
+## 🎯 Next Steps After Installation
+
+1. ✅ **Restart Terminal** - Reload environment variables
+2. ✅ **Test Profile** - Run `beast` command
+3. ✅ **Open VS Code** - Verify extensions loaded
+4. ✅ **Configure Git** - Set user name and email
+5. ⭐ **Optional**: Install WSL with `wsl --install`
+6. ⭐ **Optional**: Setup Beast Mode in Cursor
+
+---
+
+**Questions? Check [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) or review logs in `%TEMP%`**
+
+---
+
+*Infrastructure as Code Edition - Modern Windows Development Environment*
